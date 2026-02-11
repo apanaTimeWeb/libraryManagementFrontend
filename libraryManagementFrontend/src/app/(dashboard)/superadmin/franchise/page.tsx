@@ -1,6 +1,8 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Plus, TrendingUp, Building2, BarChart3, Map } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -9,17 +11,26 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { ArrowUpRight, ArrowDownRight, Trophy, TrendingUp, AlertTriangle } from 'lucide-react';
-import { branches } from '@/lib/mockData';
+import { branches, students, payments } from '@/lib/mockData';
 
 export default function FranchiseAnalyticsPage() {
-    // Mocking extended analytics data based on branches
-    const analyticsData = [
-        { name: 'Delhi Main Branch', revenue: '₹456,700', students: 156, occupancy: '87%', growth: '+12%', margin: '72%' },
-        { name: 'Mumbai South', revenue: '₹389,200', students: 128, occupancy: '82%', growth: '+8%', margin: '68%' },
-        { name: 'Bangalore Central', revenue: '₹298,500', students: 98, occupancy: '78%', growth: '+5%', margin: '65%' },
-        { name: 'Kolkata East', revenue: '₹156,800', students: 45, occupancy: '65%', growth: '-2%', margin: '58%' },
-    ];
+    // Calculate metrics for each branch
+    const branchMetrics = branches.map(branch => {
+        const branchStudents = students.filter(s => s.branchId === branch.id && s.status === 'active');
+        const branchPayments = payments.filter(p => p.branchId === branch.id && p.status === 'paid');
+        const totalRevenue = branchPayments.reduce((sum, p) => sum + p.amount, 0);
+
+        return {
+            ...branch,
+            studentCount: branchStudents.length,
+            totalRevenue,
+            avgRevenuePerStudent: branchStudents.length > 0 ? totalRevenue / branchStudents.length : 0,
+            growth: Math.floor(Math.random() * 30) - 10, // Mock growth data
+        };
+    }).sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+    const topBranches = branchMetrics.slice(0, 5);
+    const bottomBranches = branchMetrics.slice(-3);
 
     return (
         <div className="space-y-6">
@@ -27,110 +38,224 @@ export default function FranchiseAnalyticsPage() {
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Franchise Analytics</h1>
                     <p className="text-muted-foreground">
-                        Comparative analysis and performance insights across all branches.
+                        Compare performance across all branches and identify growth opportunities.
                     </p>
                 </div>
+            </div>
+
+            {/* Summary Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Branches</CardTitle>
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{branches.length}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Across {new Set(branches.map(b => b.city)).size} cities
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Network Revenue</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-green-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">₹{branchMetrics.reduce((sum, b) => sum + b.totalRevenue, 0).toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                            +15% from last month
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Avg Occupancy</CardTitle>
+                        <BarChart3 className="h-4 w-4 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">
+                            {Math.round(branches.reduce((sum, b) => sum + b.occupancy, 0) / branches.length)}%
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Network average
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Best Performer</CardTitle>
+                        <Map className="h-4 w-4 text-yellow-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold truncate">{topBranches[0]?.city}</div>
+                        <p className="text-xs text-muted-foreground">
+                            ₹{topBranches[0]?.totalRevenue.toLocaleString()}
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Performance Leaderboard */}
+            <div className="grid gap-4 md:grid-cols-2">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-green-600">🏆 Top Performing Branches</CardTitle>
+                        <CardDescription>Highest revenue generators this month</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {topBranches.map((branch, index) => (
+                                <div key={branch.id} className="flex items-center gap-4">
+                                    <div className={`flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
+                                            index === 1 ? 'bg-gray-100 text-gray-700' :
+                                                index === 2 ? 'bg-orange-100 text-orange-700' :
+                                                    'bg-blue-50 text-blue-600'
+                                        }`}>
+                                        #{index + 1}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-semibold">{branch.name}</span>
+                                            <span className="text-sm font-medium text-green-600">
+                                                ₹{branch.totalRevenue.toLocaleString()}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                            <span>{branch.studentCount} students</span>
+                                            <span>•</span>
+                                            <span>{branch.occupancy}% occupancy</span>
+                                            {branch.growth > 0 && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span className="text-green-600">+{branch.growth}% growth</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-orange-600">⚠️ Needs Attention</CardTitle>
+                        <CardDescription>Branches with lower performance</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {bottomBranches.map((branch, index) => (
+                                <div key={branch.id} className="flex items-center gap-4 p-3 bg-orange-50 rounded-lg">
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-semibold">{branch.name}</span>
+                                            <span className="text-sm font-medium">
+                                                ₹{branch.totalRevenue.toLocaleString()}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                            <span>{branch.studentCount} students</span>
+                                            <span>•</span>
+                                            <span className={branch.occupancy < 60 ? 'text-red-600' : ''}>
+                                                {branch.occupancy}% occupancy
+                                            </span>
+                                            {branch.growth < 0 && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span className="text-red-600">{branch.growth}% decline</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Comparison Matrix */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Branch Performance Matrix</CardTitle>
-                    <CardDescription>
-                        Key performance indicators compared across top performing branches.
-                    </CardDescription>
+                    <CardTitle>Branch Comparison Matrix</CardTitle>
+                    <CardDescription>Side-by-side comparison of all key metrics</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Branch Name</TableHead>
-                                <TableHead>Revenue</TableHead>
-                                <TableHead>Students</TableHead>
-                                <TableHead>Occupancy</TableHead>
-                                <TableHead>Growth (MoM)</TableHead>
-                                <TableHead>Profit Margin</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {analyticsData.map((branch, index) => (
-                                <TableRow key={index}>
-                                    <TableCell className="font-medium">{branch.name}</TableCell>
-                                    <TableCell>{branch.revenue}</TableCell>
-                                    <TableCell>{branch.students}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-medium">{branch.occupancy}</span>
-                                            <div className="h-1.5 w-16 rounded-full bg-slate-100">
-                                                <div
-                                                    className="h-full rounded-full bg-blue-600"
-                                                    style={{ width: branch.occupancy }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className={branch.growth.startsWith('+') ? 'text-green-600' : 'text-red-500'}>
-                                            {branch.growth}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>{branch.margin}</TableCell>
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Branch</TableHead>
+                                    <TableHead>City</TableHead>
+                                    <TableHead className="text-right">Students</TableHead>
+                                    <TableHead className="text-right">Capacity</TableHead>
+                                    <TableHead className="text-right">Occupancy</TableHead>
+                                    <TableHead className="text-right">Revenue</TableHead>
+                                    <TableHead className="text-right">Avg/Student</TableHead>
+                                    <TableHead className="text-right">Growth</TableHead>
                                 </TableRow>
-                            ))}
-                            <TableRow className="bg-slate-50 font-medium">
-                                <TableCell>System Average</TableCell>
-                                <TableCell>₹325,300</TableCell>
-                                <TableCell>107</TableCell>
-                                <TableCell>78%</TableCell>
-                                <TableCell className="text-green-600">+6%</TableCell>
-                                <TableCell>66%</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {branchMetrics.map((branch) => (
+                                    <TableRow key={branch.id}>
+                                        <TableCell className="font-medium">{branch.name}</TableCell>
+                                        <TableCell>{branch.city}</TableCell>
+                                        <TableCell className="text-right">{branch.studentCount}</TableCell>
+                                        <TableCell className="text-right">{branch.capacity}</TableCell>
+                                        <TableCell className="text-right">
+                                            <span className={`font-medium ${branch.occupancy > 80 ? 'text-green-600' :
+                                                    branch.occupancy > 60 ? 'text-yellow-600' :
+                                                        'text-red-600'
+                                                }`}>
+                                                {branch.occupancy}%
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-right">₹{branch.totalRevenue.toLocaleString()}</TableCell>
+                                        <TableCell className="text-right">₹{Math.round(branch.avgRevenuePerStudent).toLocaleString()}</TableCell>
+                                        <TableCell className="text-right">
+                                            <span className={`font-medium ${branch.growth > 0 ? 'text-green-600' : branch.growth < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                                                {branch.growth > 0 ? '+' : ''}{branch.growth}%
+                                            </span>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
 
-            {/* Highlights Section */}
-            <div className="grid gap-4 md:grid-cols-3">
-                <Card className="bg-gradient-to-br from-yellow-50 to-white border-yellow-200">
-                    <CardHeader className="pb-2">
-                        <div className="flex items-center gap-2">
-                            <Trophy className="h-5 w-5 text-yellow-600" />
-                            <CardTitle className="text-base text-yellow-800">Top Performer</CardTitle>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">Delhi Main Branch</div>
-                        <p className="text-sm text-muted-foreground mt-1">₹4.56L Revenue • 156 Students</p>
-                    </CardContent>
-                </Card>
+            {/* Geographical Distribution (Simplified SVG Map of India would go here) */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Geographical Distribution</CardTitle>
+                    <CardDescription>Branch presence across India</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {Array.from(new Set(branches.map(b => b.city))).map(city => {
+                            const cityBranches = branches.filter(b => b.city === city);
+                            const cityRevenue = branchMetrics.filter(b => b.city === city).reduce((sum, b) => sum + b.totalRevenue, 0);
 
-                <Card className="bg-gradient-to-br from-green-50 to-white border-green-200">
-                    <CardHeader className="pb-2">
-                        <div className="flex items-center gap-2">
-                            <TrendingUp className="h-5 w-5 text-green-600" />
-                            <CardTitle className="text-base text-green-800">Fastest Growth</CardTitle>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">Mumbai South</div>
-                        <p className="text-sm text-muted-foreground mt-1">+15% Students compared to last mo.</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-red-50 to-white border-red-200">
-                    <CardHeader className="pb-2">
-                        <div className="flex items-center gap-2">
-                            <AlertTriangle className="h-5 w-5 text-red-600" />
-                            <CardTitle className="text-base text-red-800">Needs Attention</CardTitle>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">Kolkata East</div>
-                        <p className="text-sm text-muted-foreground mt-1">Low Occupancy (65%) • Negative Growth</p>
-                    </CardContent>
-                </Card>
-            </div>
+                            return (
+                                <div key={city} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <Map className="h-5 w-5 text-blue-500" />
+                                        <span className="text-xs font-semibold text-muted-foreground">
+                                            {cityBranches.length} branch{cityBranches.length > 1 ? 'es' : ''}
+                                        </span>
+                                    </div>
+                                    <h3 className="font-bold text-lg">{city}</h3>
+                                    <p className="text-sm text-muted-foreground">₹{cityRevenue.toLocaleString()}</p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }

@@ -15,12 +15,14 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { users } from '@/lib/mockData';
+import { users, getBranchById } from '@/lib/mockData';
 import { useRouter } from 'next/navigation';
+import { CreateUserModal } from '@/components/modals/create-user-modal';
 
 export default function UserManagementPage() {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState('');
+    const [showCreateModal, setShowCreateModal] = useState(false);
 
     const filteredUsers = users.filter((user) =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -47,7 +49,7 @@ export default function UserManagementPage() {
                         Manage system users, roles, and permissions across all branches.
                     </p>
                 </div>
-                <Button onClick={() => console.log('Open create user modal')}>
+                <Button onClick={() => setShowCreateModal(true)}>
                     <Plus className="mr-2 h-4 w-4" /> Create New User
                 </Button>
             </div>
@@ -157,6 +159,8 @@ export default function UserManagementPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            <CreateUserModal open={showCreateModal} onOpenChange={setShowCreateModal} />
         </div>
     );
 }

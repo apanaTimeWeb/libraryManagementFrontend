@@ -14,12 +14,14 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { branches } from '@/lib/mockData';
+import { branches, getUserById } from '@/lib/mockData';
 import { useRouter } from 'next/navigation';
+import { CreateBranchModal } from '@/components/modals/create-branch-modal';
 
 export default function BranchManagementPage() {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState('');
+    const [showCreateModal, setShowCreateModal] = useState(false);
 
     const filteredBranches = branches.filter((branch) =>
         branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -35,7 +37,7 @@ export default function BranchManagementPage() {
                         Manage all library branches, view performance, and configure settings.
                     </p>
                 </div>
-                <Button onClick={() => console.log('Open create modal')}>
+                <Button onClick={() => setShowCreateModal(true)}>
                     <Plus className="mr-2 h-4 w-4" /> Create New Branch
                 </Button>
             </div>
@@ -94,8 +96,7 @@ export default function BranchManagementPage() {
                                             </TableCell>
                                             <TableCell className="hidden md:table-cell">{branch.city}</TableCell>
                                             <TableCell>
-                                                {/* In a real app, we'd look up the manager name from the ID */}
-                                                <span className="text-sm">Manager Name</span>
+                                                <span className="text-sm">{getUserById(branch.managerId || '')?.name || 'Unassigned'}</span>
                                             </TableCell>
                                             <TableCell>
                                                 <Badge
@@ -136,6 +137,8 @@ export default function BranchManagementPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            <CreateBranchModal open={showCreateModal} onOpenChange={setShowCreateModal} />
         </div>
     );
 }

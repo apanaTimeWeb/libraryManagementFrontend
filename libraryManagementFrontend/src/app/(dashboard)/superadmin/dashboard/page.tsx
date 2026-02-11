@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { RevenueChart } from '@/components/charts/revenue-chart';
 import { UserDistributionChart } from '@/components/charts/user-distribution';
 import {
@@ -22,13 +25,27 @@ import {
     Target,
     Users,
     LifeBuoy,
+    Plus,
+    UserPlus,
+    Bell,
+    Database,
+    FileText,
 } from 'lucide-react';
-import { branches } from '@/lib/mockData';
+import { branches, users, students } from '@/lib/mockData';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { CreateBranchModal } from '@/components/modals/create-branch-modal';
+import { CreateUserModal } from '@/components/modals/create-user-modal';
 
 export default function SuperAdminDashboard() {
+    const router = useRouter();
+    const [showCreateBranch, setShowCreateBranch] = useState(false);
+    const [showCreateUser, setShowCreateUser] = useState(false);
+
     const totalRevenue = 4567000;
-    const totalUsers = 65;
-    const activeStudents = 1420;
+    const totalUsers = users.length;
+    const activeStudents = students.filter(s => s.status === 'active').length;
+    const activeBranches = branches.filter(b => b.status === 'active').length;
 
     return (
         <div className="flex flex-col gap-6">
@@ -36,25 +53,24 @@ export default function SuperAdminDashboard() {
                 <h1 className="text-3xl font-bold tracking-tight">Dashboard Overview</h1>
                 <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground mr-2">Last updated: Just now</span>
-                    {/* Action buttons could go here */}
                 </div>
             </div>
 
             {/* KPI Section */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card>
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => router.push('/superadmin/branches')}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Branches</CardTitle>
                         <Building className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">12</div>
+                        <div className="text-2xl font-bold">{branches.length}</div>
                         <p className="text-xs text-muted-foreground">
-                            +2 from last month
+                            Active: {activeBranches}, Inactive: {branches.length - activeBranches}
                         </p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => router.push('/superadmin/users')}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Users</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
@@ -62,7 +78,7 @@ export default function SuperAdminDashboard() {
                     <CardContent>
                         <div className="text-2xl font-bold">{totalUsers}</div>
                         <p className="text-xs text-muted-foreground">
-                            Across all roles
+                            SA: {users.filter(u => u.role === 'superadmin').length}, Owner: {users.filter(u => u.role === 'owner').length}, Mgr: {users.filter(u => u.role === 'manager').length}, Staff: {users.filter(u => u.role === 'staff').length}
                         </p>
                     </CardContent>
                 </Card>
@@ -86,7 +102,7 @@ export default function SuperAdminDashboard() {
                     <CardContent>
                         <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                            +8.5% from last month
+                            Avg per branch: ₹{Math.floor(totalRevenue / branches.length).toLocaleString()}
                         </p>
                     </CardContent>
                 </Card>
@@ -115,6 +131,36 @@ export default function SuperAdminDashboard() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Quick Actions Panel */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Quick Actions</CardTitle>
+                    <CardDescription>Frequently used administrative actions</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+                    <Button variant="outline" className="justify-start" onClick={() => setShowCreateBranch(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create New Branch
+                    </Button>
+                    <Button variant="outline" className="justify-start" onClick={() => setShowCreateUser(true)}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add New User
+                    </Button>
+                    <Button variant="outline" className="justify-start" onClick={() => alert('System Announcement feature - Coming soon!')}>
+                        <Bell className="mr-2 h-4 w-4" />
+                        Send Announcement
+                    </Button>
+                    <Button variant="outline" className="justify-start" onClick={() => alert('System backup initiated successfully!')}>
+                        <Database className="mr-2 h-4 w-4" />
+                        Run System Backup
+                    </Button>
+                    <Button variant="outline" className="justify-start" onClick={() => router.push('/superadmin/logs')}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        View Audit Logs
+                    </Button>
+                </CardContent>
+            </Card>
 
             {/* Charts Section */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -162,7 +208,7 @@ export default function SuperAdminDashboard() {
                         </TableHeader>
                         <TableBody>
                             {branches.map((branch) => (
-                                <TableRow key={branch.id}>
+                                <TableRow key={branch.id} className="cursor-pointer hover:bg-slate-50" onClick={() => router.push(`/superadmin/branches/${branch.id}`)}>
                                     <TableCell className="font-medium">{branch.name}</TableCell>
                                     <TableCell>{branch.city}</TableCell>
                                     <TableCell>{Math.floor(branch.capacity * (branch.occupancy / 100))}</TableCell>
@@ -181,35 +227,19 @@ export default function SuperAdminDashboard() {
                                     <TableCell className="text-right">₹{branch.revenue.toLocaleString()}</TableCell>
                                     <TableCell className="text-right">
                                         <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                            Active
+                                            {branch.status}
                                         </span>
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {/* Add more rows manually if needed for demo */}
-                            <TableRow>
-                                <TableCell className="font-medium">Bangalore Central</TableCell>
-                                <TableCell>Bangalore</TableCell>
-                                <TableCell>98</TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs font-medium">78%</span>
-                                        <div className="h-2 w-16 rounded-full bg-slate-100">
-                                            <div className="h-full rounded-full bg-yellow-500" style={{ width: '78%' }} />
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell className="text-right">₹298,500</TableCell>
-                                <TableCell className="text-right">
-                                    <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                        Active
-                                    </span>
-                                </TableCell>
-                            </TableRow>
                         </TableBody>
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Modals */}
+            <CreateBranchModal open={showCreateBranch} onOpenChange={setShowCreateBranch} />
+            <CreateUserModal open={showCreateUser} onOpenChange={setShowCreateUser} />
         </div>
     );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,7 +47,7 @@ const ptps = [
     { id: 2, name: 'Kavita Krishnan', amount: 1200, date: '2024-02-14', trustScore: 5, overdue: 0 },
 ];
 
-export default function DashboardPage() {
+function DashboardContent() {
     const searchParams = useSearchParams();
     const branchId = searchParams.get('branch');
     const branchName = branchId ? branchId.replace('-', ' ').toUpperCase() : 'YOUR BRANCH';
@@ -161,9 +162,9 @@ export default function DashboardPage() {
                                 <div
                                     key={i}
                                     className={`h-3 w-3 rounded-sm ${i % 29 === 0 ? 'bg-orange-400' : // Maintenance
-                                            i % 7 === 0 ? 'bg-red-500' : // Occupied
-                                                i % 13 === 0 ? 'bg-yellow-400' : // Expiring
-                                                    'bg-green-500' // Available
+                                        i % 7 === 0 ? 'bg-red-500' : // Occupied
+                                            i % 13 === 0 ? 'bg-yellow-400' : // Expiring
+                                                'bg-green-500' // Available
                                         }`}
                                     title={`Seat ${i + 1}`}
                                 />
@@ -258,7 +259,7 @@ export default function DashboardPage() {
                                             </TableCell>
                                             <TableCell>
                                                 <span className={`text-xs font-medium ${item.status === 'new' ? 'text-blue-600' :
-                                                        item.status === 'important' ? 'text-orange-600' : 'text-slate-600'
+                                                    item.status === 'important' ? 'text-orange-600' : 'text-slate-600'
                                                     }`}>
                                                     {item.status.toUpperCase()}
                                                 </span>
@@ -326,5 +327,13 @@ export default function DashboardPage() {
             </div>
 
         </div>
+    );
+}
+
+export default function DashboardPage() {
+    return (
+        <Suspense fallback={<div className="p-8">Loading dashboard...</div>}>
+            <DashboardContent />
+        </Suspense>
     );
 }
