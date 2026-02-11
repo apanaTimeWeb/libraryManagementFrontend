@@ -9,20 +9,34 @@ import {
 } from '@/components/ui/tooltip';
 
 interface SeatHeatmapProps {
-    data: {
+    data?: {
         id: string;
         status: 'occupied' | 'vacant' | 'reserved' | 'maintenance';
         label: string;
     }[];
 }
 
+const fallbackStatuses: Array<'occupied' | 'vacant' | 'reserved' | 'maintenance'> = [
+    'occupied',
+    'occupied',
+    'occupied',
+    'vacant',
+    'occupied',
+    'reserved',
+    'vacant',
+    'occupied',
+    'maintenance',
+    'occupied',
+];
+
+const fallbackSeats = Array.from({ length: 100 }, (_, i) => ({
+    id: `seat-${i}`,
+    label: `S-${i + 1}`,
+    status: fallbackStatuses[i % fallbackStatuses.length],
+}));
+
 export function SeatHeatmap({ data }: SeatHeatmapProps) {
-    // Mock data generator if not provided
-    const seats = data || Array.from({ length: 100 }, (_, i) => ({
-        id: `seat-${i}`,
-        label: `S-${i + 1}`,
-        status: Math.random() < 0.6 ? 'occupied' : Math.random() < 0.8 ? 'vacant' : Math.random() < 0.95 ? 'reserved' : 'maintenance',
-    }));
+    const seats = data ?? fallbackSeats;
 
     const getStatusColor = (status: string) => {
         switch (status) {

@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import {
     ArrowLeft, Edit2, Mail, Phone, Calendar, Activity,
-    Shield, Key, Lock, Smartphone, MapPin, TrendingUp
+    Shield, Key, Smartphone, MapPin
 } from 'lucide-react';
 import { users, getBranchById, branches, auditLogs } from '@/lib/mockData';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -21,7 +21,7 @@ interface PageProps {
 }
 
 // Mock session data
-const generateSessions = (userId: string) => {
+const generateSessions = () => {
     return Array.from({ length: 5 }, (_, i) => ({
         id: `session-${i + 1}`,
         device: ['Chrome/Windows 11', 'Safari/macOS', 'Firefox/Ubuntu', 'Edge/Windows 10', 'Chrome/Android'][i],
@@ -49,6 +49,20 @@ const allPermissions = [
     { id: 'system_settings', name: 'System Settings', category: 'System' },
 ];
 
+const sessionHistorySeed = Array.from({ length: 10 }, (_, i) => ({
+    timestamp: new Date(2026, 0, 10 + i, 9 + (i % 8), 15).toISOString(),
+    ip: `192.168.${10 + i}.${100 + i}`,
+    device: ['Chrome/Windows', 'Safari/Mac', 'Firefox/Linux'][i % 3],
+    status: 'success' as const,
+}));
+
+const permissionChangeSeed = Array.from({ length: 5 }, (_, i) => ({
+    timestamp: new Date(2025, 11, 1 + i * 5, 11, 30).toISOString(),
+    action: ['Added', 'Removed', 'Modified'][i % 3],
+    permission: allPermissions[i % allPermissions.length].name,
+    by: users[0].name,
+}));
+
 export default function UserProfilePage({ params }: PageProps) {
     const { id } = use(params);
     const router = useRouter();
@@ -68,7 +82,7 @@ export default function UserProfilePage({ params }: PageProps) {
     }
 
     const userBranch = user.branchId ? getBranchById(user.branchId) : null;
-    const sessions = generateSessions(user.id);
+    const sessions = generateSessions();
     const userAuditLogs = auditLogs.filter(log => log.userId === user.id).slice(0, 20);
 
     // For owners, get all branches they own
@@ -162,7 +176,7 @@ export default function UserProfilePage({ params }: PageProps) {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Activity Statistics</CardTitle>
-                                <CardDescription>This month's activity</CardDescription>
+                                <CardDescription>This month&apos;s activity</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex items-center justify-between">
@@ -219,7 +233,7 @@ export default function UserProfilePage({ params }: PageProps) {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="font-medium">Password</p>
-                                    <p className="text-sm text-muted-foreground">Last changed {Math.floor(Math.random() * 90) + 1} days ago</p>
+                                    <p className="text-sm text-muted-foreground">Last changed 32 days ago</p>
                                 </div>
                                 <Button variant="outline">
                                     <Key className="mr-2 h-4 w-4" /> Reset Password
@@ -279,12 +293,7 @@ export default function UserProfilePage({ params }: PageProps) {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-2">
-                                {Array.from({ length: 10 }, (_, i) => ({
-                                    timestamp: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-                                    ip: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-                                    device: ['Chrome/Windows', 'Safari/Mac', 'Firefox/Linux'][i % 3],
-                                    status: 'success' as const,
-                                })).map((login, i) => (
+                                {sessionHistorySeed.map((login, i) => (
                                     <div key={i} className="flex items-center justify-between py-2 border-b text-sm">
                                         <div>
                                             <span className="font-medium">{login.device}</span>
@@ -369,12 +378,7 @@ export default function UserProfilePage({ params }: PageProps) {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-2">
-                                {Array.from({ length: 5 }, (_, i) => ({
-                                    timestamp: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString(),
-                                    action: ['Added', 'Removed', 'Modified'][i % 3],
-                                    permission: allPermissions[i % allPermissions.length].name,
-                                    by: users[0].name,
-                                })).map((change, i) => (
+                                {permissionChangeSeed.map((change, i) => (
                                     <div key={i} className="flex items-center justify-between py-2 border-b text-sm">
                                         <div>
                                             <Badge variant="outline" className="mr-2">{change.action}</Badge>

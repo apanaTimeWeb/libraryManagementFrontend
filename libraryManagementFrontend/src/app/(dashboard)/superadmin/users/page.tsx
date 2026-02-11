@@ -1,88 +1,113 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { users } from '@/lib/mockData';
 import { useRouter } from 'next/navigation';
 import { CreateUserModal } from '@/components/modals/create-user-modal';
 import { EditUserModal } from '@/components/modals/edit-user-modal';
 import { ResetPasswordModal } from '@/components/modals/reset-password-modal';
-import { UserTable } from '@/components/tables/user-table';
+import { UserTable, type UserTableRow } from '@/components/tables/user-table';
 import { toast } from 'sonner';
+import { useUserStore } from '@/lib/stores/user-store';
+import { getBranchById } from '@/lib/mockData';
 
 export default function UserManagementPage() {
-    const router = useRouter();
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<any>(null);
+  const router = useRouter();
 
-    const handleEdit = (user: any) => {
-        setSelectedUser(user);
-        setShowEditModal(true);
-    };
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserTableRow | null>(null);
 
-    const handleView = (user: any) => {
-        router.push(`/superadmin/users/${user.id}`);
-    };
+  const { users, fetchUsers, deleteUser, isLoading } = useUserStore();
 
-    const handleDelete = (user: any) => {
-        // Show confirmation toast
-        toast.error('Delete functionality not yet implemented', {
-            description: `Would delete user: ${user.name}`,
-        });
-    };
+  useEffect(() => {
+    void fetchUsers();
+  }, [fetchUsers]);
 
-    const handleResetPassword = (user: any) => {
-        setSelectedUser(user);
-        setShowResetPasswordModal(true);
-    };
+  const tableData = useMemo<UserTableRow[]>(() => {
+    return users.map((user) => ({
+      ...user,
+      branchName: user.branchId ? getBranchById(user.branchId)?.name : 'Global Access',
+    }));
+  }, [users]);
 
-    return (
-        <div className="space-y-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-                    <p className="text-muted-foreground">
-                        Manage system users, roles, and permissions across all branches.
-                    </p>
-                </div>
-                <Button onClick={() => setShowCreateModal(true)}>
-                    <Plus className="mr-2 h-4 w-4" /> Create New User
-                </Button>
-            </div>
+  const handleEdit = (user: UserTableRow) => {
+    setSelectedUser(user);
+    setShowEditModal(true);
+  };
 
-            <Card>
-                <CardHeader className="pb-3">
-                    <CardTitle>System Users</CardTitle>
-                    <CardDescription>
-                        A comprehensive list of all users with access to the system.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <UserTable
-                        data={users}
-                        onEdit={handleEdit}
-                        onView={handleView}
-                        onDelete={handleDelete}
-                        onResetPassword={handleResetPassword}
-                    />
-                </CardContent>
-            </Card>
+  const handleView = (user: UserTableRow) => {
+    router.push(`/superadmin/users/${user.id}`);
+  };
 
-            <CreateUserModal open={showCreateModal} onOpenChange={setShowCreateModal} />
-            <EditUserModal
-                open={showEditModal}
-                onOpenChange={setShowEditModal}
-                user={selectedUser}
-            />
-            <ResetPasswordModal
-                open={showResetPasswordModal}
-                onOpenChange={setShowResetPasswordModal}
-                user={selectedUser}
-            />
+  const handleDelete = async (user: UserTableRow) => {
+    try {
+      await deleteUser(user.id);
+      toast.success('User deleted', {
+        description: `${user.name} has been removed.`,
+      });
+    } catch {
+      toast.error('Delete failed', {
+        description: `Could not delete ${user.name}.`,
+      });
+    }
+  };
+
+  const handleResetPassword = (user: UserTableRow) => {
+    setSelectedUser(user);
+    setShowResetPasswordModal(true);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+          <p className="text-muted-foreground">
+            Manage system users, roles, and permissions across all branches.
+          </p>
         </div>
-    );
+        <Button onClick={() => setShowCreateModal(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Create New User
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>System Users</CardTitle>
+          <CardDescription>
+            A comprehensive list of all users with access to the system.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading users...</p>
+          ) : (
+            <UserTable
+              data={tableData}
+              onEdit={handleEdit}
+              onView={handleView}
+              onDelete={handleDelete}
+              onResetPassword={handleResetPassword}
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      <CreateUserModal open={showCreateModal} onOpenChange={setShowCreateModal} />
+      <EditUserModal
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        user={selectedUser}
+      />
+      <ResetPasswordModal
+        open={showResetPasswordModal}
+        onOpenChange={setShowResetPasswordModal}
+        user={selectedUser}
+      />
+    </div>
+  );
 }

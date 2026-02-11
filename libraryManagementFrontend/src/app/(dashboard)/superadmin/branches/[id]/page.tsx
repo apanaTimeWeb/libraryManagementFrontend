@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
     ArrowLeft, Edit2, MapPin, Phone, Mail, Building2, Calendar,
-    Users, TrendingUp, IndianRupee, Clock, Settings
+    Users, TrendingUp, IndianRupee, Clock
 } from 'lucide-react';
 import { branches, getUserById, students, payments, users, auditLogs } from '@/lib/mockData';
 import { format } from 'date-fns';
@@ -20,6 +20,10 @@ import { Sparkline } from '@/components/charts/sparkline';
 interface PageProps {
     params: Promise<{ id: string }>;
 }
+
+const revenueSeries = [208000, 216500, 224000, 231000, 239500, 247000, 254500, 263000, 271000, 279500, 288000, 296500];
+const admissionsSeries = [14, 12, 18, 16, 19, 17];
+const occupancySeries = [72, 74, 76, 78, 79, 81, 82, 83, 84, 85, 86, 87];
 
 export default function BranchDetailsPage({ params }: PageProps) {
     const { id } = use(params);
@@ -48,10 +52,9 @@ export default function BranchDetailsPage({ params }: PageProps) {
         .filter(log => log.entityId === id || branchStudents.some(s => s.id === log.entityId))
         .slice(0, 10);
 
-    // Mock financial data for charts
     const monthlyRevenue = Array.from({ length: 12 }, (_, i) => ({
         month: format(new Date(2024, i, 1), 'MMM'),
-        revenue: Math.floor(Math.random() * 100000) + 200000
+        revenue: revenueSeries[i]
     }));
 
     const collectionSummary = {
@@ -73,12 +76,12 @@ export default function BranchDetailsPage({ params }: PageProps) {
 
     const admissionTrend = Array.from({ length: 6 }, (_, i) => ({
         month: format(new Date(2024, 6 + i, 1), 'MMM'),
-        admissions: Math.floor(Math.random() * 20) + 10
+        admissions: admissionsSeries[i]
     }));
 
     const occupancyTrend = Array.from({ length: 12 }, (_, i) => ({
         month: format(new Date(2024, i, 1), 'MMM'),
-        occupancy: Math.floor(Math.random() * 30) + 70
+        occupancy: occupancySeries[i]
     }));
 
     return (
