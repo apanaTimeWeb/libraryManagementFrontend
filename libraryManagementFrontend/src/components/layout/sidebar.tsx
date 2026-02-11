@@ -157,7 +157,9 @@ export function Sidebar() {
     const isManager = user.role === 'manager';
 
     // Construct Nav
-    const navItems: NavGroup[] = isSuperAdmin ? SUPERADMIN_NAV : JSON.parse(JSON.stringify(STAFF_NAV));
+    const navItems: NavGroup[] = isSuperAdmin
+        ? SUPERADMIN_NAV
+        : STAFF_NAV.map(group => ({ ...group, items: [...group.items] }));
 
     if (!isSuperAdmin) {
         if (isManager || isOwner) {
