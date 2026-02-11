@@ -133,6 +133,67 @@ export function LoginForm() {
                         'Sign In'
                     )}
                 </Button>
+
+                {/* Demo Login Buttons */}
+                <div className="mt-6">
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-background px-2 text-muted-foreground">
+                                Demo Access
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            onClick={() => {
+                                form.setValue('identifier', 'admin@smartlibrary.com');
+                                form.setValue('password', 'Admin@123');
+                            }}
+                        >
+                            SuperAdmin
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            onClick={() => {
+                                form.setValue('identifier', 'owner@delhi.com');
+                                form.setValue('password', 'Admin@123');
+                            }}
+                        >
+                            Owner
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            onClick={() => {
+                                form.setValue('identifier', 'manager@delhi.com');
+                                form.setValue('password', 'Admin@123');
+                            }}
+                        >
+                            Manager
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            onClick={() => {
+                                form.setValue('identifier', 'staff@delhi.com');
+                                form.setValue('password', 'Admin@123');
+                            }}
+                        >
+                            Staff
+                        </Button>
+                    </div>
+                </div>
             </form>
         </Form>
     );
