@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowUpDown, MoreHorizontal, Edit, Eye, Trash2, Key } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, Edit, Eye, Trash2, Key, Download, Power } from 'lucide-react';
 
 interface UserTableProps {
   data: any[];
@@ -134,14 +134,70 @@ export function UserTable({ data, onEdit, onView, onDelete, onResetPassword }: U
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-sm"
         />
-        {Object.keys(rowSelection).length > 0 && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">Bulk Activate</Button>
-            <Button variant="outline" size="sm">Bulk Deactivate</Button>
-            <Button variant="outline" size="sm">Export Selected</Button>
-          </div>
-        )}
       </div>
+
+      {/* Bulk Actions Toolbar */}
+      {Object.keys(rowSelection).length > 0 && (
+        <div className="flex items-center justify-between rounded-md bg-muted px-4 py-3">
+          <p className="text-sm font-medium">
+            {table.getFilteredSelectedRowModel().rows.length} row(s) selected
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => {
+              const selectedUsers = table.getFilteredSelectedRowModel().rows.map(row => row.original);
+              selectedUsers.forEach(user => console.log('Activating:', user.name));
+              table.resetRowSelection();
+            }}>
+              <Power className="mr-2 h-4 w-4" /> Activate
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              const selectedUsers = table.getFilteredSelectedRowModel().rows.map(row => row.original);
+              selectedUsers.forEach(user => console.log('Deactivating:', user.name));
+              table.resetRowSelection();
+            }}>
+              <Power className="mr-2 h-4 w-4" /> Deactivate
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              const selectedUsers = table.getFilteredSelectedRowModel().rows.map(row => row.original);
+              if (confirm(`Reset password for ${selectedUsers.length} user(s)?`)) {
+                selectedUsers.forEach(user => {
+                  if (onResetPassword) onResetPassword(user);
+                });
+                table.resetRowSelection();
+              }
+            }}>
+              <Key className="mr-2 h-4 w-4" /> Reset Passwords
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              const selectedUsers = table.getFilteredSelectedRowModel().rows.map(row => row.original);
+              const csv = [
+                ['Name', 'Email', 'Phone', 'Role', 'Status', 'Last Login'].join(','),
+                ...selectedUsers.map(u => [u.name, u.email, u.phone, u.role, u.isActive ? 'Active' : 'Inactive', u.lastLogin].join(','))
+              ].join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `users_${new Date().toISOString().split('T')[0]}.csv`;
+              a.click();
+              table.resetRowSelection();
+            }}>
+              <Download className="mr-2 h-4 w-4" /> Export
+            </Button>
+            <Button variant="destructive" size="sm" onClick={() => {
+              const selectedUsers = table.getFilteredSelectedRowModel().rows.map(row => row.original);
+              if (confirm(`Delete ${selectedUsers.length} user(s)? This cannot be undone.`)) {
+                selectedUsers.forEach(user => {
+                  if (onDelete) onDelete(user);
+                });
+                table.resetRowSelection();
+              }
+            }}>
+              <Trash2 className="mr-2 h-4 w-4" /> Delete ({table.getFilteredSelectedRowModel().rows.length})
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="rounded-md border">
         <Table>

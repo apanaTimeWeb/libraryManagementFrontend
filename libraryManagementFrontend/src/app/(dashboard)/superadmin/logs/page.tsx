@@ -1,43 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search, Filter, FileText, Download, AlertTriangle } from 'lucide-react';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { Download, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { auditLogs, getUserById } from '@/lib/mockData';
 import { formatDistanceToNow } from 'date-fns';
+import { AuditLogTable } from '@/components/tables/audit-log-table';
+import { AuditDiffModal } from '@/components/modals/audit-diff-modal';
+import { toast } from 'sonner';
 
 export default function SystemLogsPage() {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
+    const [selectedLog, setSelectedLog] = React.useState<any | null>(null);
+    const [diffModalOpen, setDiffModalOpen] = React.useState(false);
 
-    const filteredLogs = auditLogs.filter(log => {
-        const matchesSearch = log.userId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.entityType.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesSeverity = selectedSeverity === 'all' || log.severity === selectedSeverity;
-        return matchesSearch && matchesSeverity;
-    });
-
-    const getSeverityColor = (severity: string) => {
-        switch (severity) {
-            case 'critical': return 'bg-red-100 text-red-700 hover:bg-red-100';
-            case 'high': return 'bg-orange-100 text-orange-700 hover:bg-orange-100';
-            case 'medium': return 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100';
-            case 'low': return 'bg-green-100 text-green-700 hover:bg-green-100';
-            default: return 'bg-gray-100 text-gray-700 hover:bg-gray-100';
-        }
-    };
+    const criticalLogs = auditLogs.filter(log => log.severity === 'critical' || log.severity === 'high');
 
     const getActionColor = (action: string) => {
         switch (action) {
@@ -50,7 +28,16 @@ export default function SystemLogsPage() {
         }
     };
 
-    const criticalLogs = auditLogs.filter(log => log.severity === 'critical' || log.severity === 'high');
+    const handleViewChanges = (log: any) => {
+        setSelectedLog(log);
+        setDiffModalOpen(true);
+    };
+
+    const handleExportLogs = () => {
+        toast.success('Export initiated', {
+            description: 'Downloading audit logs as CSV...',
+        });
+    };
 
     return (
         <div className="space-y-6">
@@ -61,12 +48,10 @@ export default function SystemLogsPage() {
                         Monitor system activities, security events, and changes across all modules.
                     </p>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => alert('Exporting audit logs to CSV...')}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export Logs
-                    </Button>
-                </div>
+                <Button variant="outline" onClick={handleExportLogs}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export Logs
+                </Button>
             </div>
 
             {/* Suspicious Activity Alerts */}
@@ -101,123 +86,23 @@ export default function SystemLogsPage() {
                 </Card>
             )}
 
-            {/* Search and Filter */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Advanced Search & Filters</CardTitle>
-                    <CardDescription>Filter logs by user, action, entity type, or severity</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search by user, action, or entity..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <Button
-                                variant={selectedSeverity === 'all' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setSelectedSeverity('all')}
-                            >
-                                All
-                            </Button>
-                            <Button
-                                variant={selectedSeverity === 'critical' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setSelectedSeverity('critical')}
-                            >
-                                Critical
-                            </Button>
-                            <Button
-                                variant={selectedSeverity === 'high' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setSelectedSeverity('high')}
-                            >
-                                High
-                            </Button>
-                            <Button
-                                variant={selectedSeverity === 'medium' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setSelectedSeverity('medium')}
-                            >
-                                Medium
-                            </Button>
-                            <Button
-                                variant={selectedSeverity === 'low' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setSelectedSeverity('low')}
-                            >
-                                Low
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
             {/* Audit Logs Table */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Audit Logs ({filteredLogs.length} records)</CardTitle>
+                    <CardTitle>Audit Logs ({auditLogs.length} records)</CardTitle>
                     <CardDescription>Complete activity history with change tracking</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Timestamp</TableHead>
-                                    <TableHead>User</TableHead>
-                                    <TableHead>Action</TableHead>
-                                    <TableHead>Entity</TableHead>
-                                    <TableHead>IP Address</TableHead>
-                                    <TableHead>Device</TableHead>
-                                    <TableHead className="text-right">Severity</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredLogs.slice(0, 50).map((log) => (
-                                    <TableRow key={log.id} className="cursor-pointer hover:bg-slate-50">
-                                        <TableCell className="text-xs">
-                                            {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div>
-                                                <div className="font-medium">{getUserById(log.userId)?.name || 'System'}</div>
-                                                <div className="text-xs text-muted-foreground capitalize">{log.userRole}</div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge className={getActionColor(log.action)}>
-                                                {log.action}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div>
-                                                <div className="capitalize font-medium">{log.entityType}</div>
-                                                {log.entityId && (
-                                                    <div className="text-xs text-muted-foreground">{log.entityId}</div>
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-xs">{log.ipAddress}</TableCell>
-                                        <TableCell className="text-xs">{log.device}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Badge className={getSeverityColor(log.severity)}>
-                                                {log.severity}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
+                    <AuditLogTable data={auditLogs} onViewChanges={handleViewChanges} />
                 </CardContent>
             </Card>
+
+            {/* Audit Diff Modal */}
+            <AuditDiffModal
+                open={diffModalOpen}
+                onOpenChange={setDiffModalOpen}
+                log={selectedLog}
+            />
         </div>
     );
 }

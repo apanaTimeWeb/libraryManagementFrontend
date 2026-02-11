@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUpDown, MoreHorizontal, Edit, Eye, Trash2, Power } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, Edit, Eye, Trash2, Power, Download } from 'lucide-react';
 
 interface BranchTableProps {
   data: any[];
@@ -129,14 +129,77 @@ export function BranchTable({ data, onEdit, onView, onDelete, onDeactivate }: Br
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-sm"
         />
-        {Object.keys(rowSelection).length > 0 && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">Bulk Activate</Button>
-            <Button variant="outline" size="sm">Bulk Deactivate</Button>
-            <Button variant="outline" size="sm">Export Selected</Button>
-          </div>
-        )}
       </div>
+
+      {/* Bulk Actions Toolbar */}
+      {Object.keys(rowSelection).length > 0 && (
+        <div className="flex items-center justify-between rounded-md bg-muted px-4 py-3">
+          <p className="text-sm font-medium">
+            {table.getFilteredSelectedRowModel().rows.length} row(s) selected
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const selectedBranches = table.getFilteredSelectedRowModel().rows.map(row => row.original);
+                selectedBranches.forEach(branch => console.log('Activating:', branch.name));
+                table.resetRowSelection();
+              }}
+            >
+              <Power className="mr-2 h-4 w-4" /> Activate
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const selectedBranches = table.getFilteredSelectedRowModel().rows.map(row => row.original);
+                selectedBranches.forEach(branch => {
+                  if (onDeactivate) onDeactivate(branch);
+                });
+                table.resetRowSelection();
+              }}
+            >
+              <Power className="mr-2 h-4 w-4" /> Deactivate
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const selectedBranches = table.getFilteredSelectedRowModel().rows.map(row => row.original);
+                const csv = [
+                  ['Name', 'City', 'Status', 'Capacity', 'Occupancy', 'Revenue'].join(','),
+                  ...selectedBranches.map(b => [b.name, b.city, b.status, b.capacity, b.occupancy, b.revenue].join(','))
+                ].join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `branches_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                table.resetRowSelection();
+              }}
+            >
+              <Download className="mr-2 h-4 w-4" /> Export
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                const selectedBranches = table.getFilteredSelectedRowModel().rows.map(row => row.original);
+                if (confirm(`Delete ${selectedBranches.length} branch(es)? This cannot be undone.`)) {
+                  selectedBranches.forEach(branch => {
+                    if (onDelete) onDelete(branch);
+                  });
+                  table.resetRowSelection();
+                }
+              }}
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Delete ({table.getFilteredSelectedRowModel().rows.length})
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="rounded-md border">
         <Table>

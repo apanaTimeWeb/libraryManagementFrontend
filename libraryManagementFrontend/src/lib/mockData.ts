@@ -417,7 +417,7 @@ const generateStudents = (count: number): Student[] => {
     return students;
 };
 
-export const students = generateStudents(250);
+export const students = generateStudents(500);
 
 // --- Mock Data: 150 Seats ---
 const generateSeats = (): Seat[] => {
@@ -480,7 +480,7 @@ const generatePayments = (count: number): Payment[] => {
     return payments;
 };
 
-export const payments = generatePayments(150);
+export const payments = generatePayments(1000);
 
 // --- Mock Data: 50+ Enquiries ---
 const generateEnquiries = (count: number): Enquiry[] => {
@@ -632,8 +632,7 @@ export const maintenanceLogs: MaintenanceLog[] = Array.from({ length: 25 }, (_, 
     notes: `Maintenance completed successfully for item ${i + 1}`,
 }));
 
-// --- Mock Data: Audit Logs ---
-export const auditLogs: AuditLog[] = Array.from({ length: 100 }, (_, i) => {
+export const auditLogs: AuditLog[] = Array.from({ length: 2000 }, (_, i) => {
     const user = users[i % users.length];
     const actions: AuditLog['action'][] = ['create', 'update', 'delete', 'login', 'logout', 'view'];
     const entityTypes: AuditLog['entityType'][] = ['user', 'student', 'branch', 'payment', 'seat', 'setting'];

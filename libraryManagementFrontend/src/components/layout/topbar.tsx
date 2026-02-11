@@ -15,10 +15,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, Search, Menu, Building } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { NotificationDropdown } from '@/components/layout/notification-dropdown';
+import { useSocketForNotifications } from '@/lib/socket-client';
 
 export function Topbar() {
     const { user, logout } = useAuth();
     const pathname = usePathname();
+
+    // Initialize socket connection for real-time notifications
+    useSocketForNotifications();
 
     if (!user) return null;
 
@@ -73,10 +78,7 @@ export function Topbar() {
                 </div>
 
                 {/* Notifications */}
-                <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="h-5 w-5" />
-                    <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-600" />
-                </Button>
+                <NotificationDropdown />
 
                 {/* Profile */}
                 <DropdownMenu>
