@@ -6,6 +6,7 @@ import { authService } from '@/lib/auth-service';
 import { LoginFormValues, SetupFormValues } from '@/lib/validation/auth';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useAuthStore } from '@/lib/stores/auth-store';
 
 interface AuthContextType {
     user: User | null;
@@ -21,6 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+    const { setAuth, clearAuth } = useAuthStore();
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -41,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsLoading(true);
             const user = await authService.login(data);
             setUser(user);
+            setAuth(user, 'mock-token-' + user.id);
             toast.success('Successfully logged in');
 
             // Redirect based on role
@@ -61,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             await authService.logout();
             setUser(null);
+            clearAuth();
             router.push('/login');
             toast.success('Logged out successfully');
         } catch (error) {
@@ -73,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsLoading(true);
             const newUser = await authService.setupSystem(data);
             setUser(newUser);
+            setAuth(newUser, 'mock-token-' + newUser.id);
             toast.success('System setup complete');
             router.push('/superadmin/dashboard');
         } catch (error) {
