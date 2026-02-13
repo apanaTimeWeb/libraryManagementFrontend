@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { editBranchSchema, type EditBranchFormData } from '@/lib/validation/branch';
 import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useBranchStore } from '@/lib/stores/branch-store';
 
 interface EditBranchModalProps {
   open: boolean;
@@ -21,6 +22,7 @@ interface EditBranchModalProps {
 
 export function EditBranchModal({ open, onOpenChange, branch }: EditBranchModalProps) {
   const [step, setStep] = useState(1);
+  const { updateBranch, fetchBranches } = useBranchStore();
   
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting }, reset } = useForm<EditBranchFormData>({
     resolver: zodResolver(editBranchSchema),
@@ -35,10 +37,30 @@ export function EditBranchModal({ open, onOpenChange, branch }: EditBranchModalP
   }, [branch, open, setValue]);
 
   const onSubmit = async (data: EditBranchFormData) => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast.success('Branch updated successfully!');
-    onOpenChange(false);
-    setStep(1);
+    if (!branch?.id) return;
+    
+    try {
+      await updateBranch(branch.id, {
+        name: data.name,
+        city: data.city,
+        address: data.address,
+        contactNumber: data.phone,
+        email: data.email,
+        capacity: data.totalCapacity,
+        monthlyRent: data.monthlyRent,
+        gstNumber: data.gstNumber,
+        panNumber: data.panNumber,
+      });
+      
+      toast.success('Branch updated successfully!');
+      onOpenChange(false);
+      setStep(1);
+      await fetchBranches();
+    } catch (error) {
+      toast.error('Failed to update branch', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
   };
 
   const cities = ['Delhi', 'Mumbai', 'Bangalore', 'Kolkata', 'Pune', 'Hyderabad', 'Chennai'];

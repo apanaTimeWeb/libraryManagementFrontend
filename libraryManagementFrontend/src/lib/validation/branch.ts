@@ -84,7 +84,7 @@ export const branchConfigurationSchema = z.object({
 
 // Branch manager assignment schema (Step 4)
 export const branchManagerSchema = z.object({
-    managerId: z.string().min(1, 'Manager selection is required'),
+    managerId: z.string().optional(),
 });
 
 // Branch default settings schema (Step 5)

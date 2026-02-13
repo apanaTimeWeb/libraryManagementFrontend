@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { deactivateBranchSchema, type DeactivateBranchFormData } from '@/lib/validation/branch';
 import { toast } from 'sonner';
 import { AlertTriangle } from 'lucide-react';
+import { useBranchStore } from '@/lib/stores/branch-store';
 
 interface DeactivateBranchModalProps {
   open: boolean;
@@ -20,18 +22,44 @@ interface DeactivateBranchModalProps {
 }
 
 export function DeactivateBranchModal({ open, onOpenChange, branch, branches }: DeactivateBranchModalProps) {
+  const { updateBranch, fetchBranches } = useBranchStore();
+  const activeBranches = branches.filter(b => b.id !== branch?.id && b.status === 'active');
+  
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<DeactivateBranchFormData>({
     resolver: zodResolver(deactivateBranchSchema),
-    defaultValues: { id: branch?.id, archiveData: true },
+    defaultValues: { 
+      id: branch?.id, 
+      archiveData: true,
+      reason: 'other',
+      reasonNotes: 'Testing deactivation functionality',
+      migrateStudentsTo: activeBranches.length > 0 ? activeBranches[0].id : undefined,
+    },
   });
 
   const onSubmit = async (data: DeactivateBranchFormData) => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast.success('Branch deactivated successfully!');
-    onOpenChange(false);
+    if (!branch?.id) return;
+    
+    try {
+      await updateBranch(branch.id, { status: 'inactive' });
+      toast.success('Branch deactivated successfully!');
+      onOpenChange(false);
+      await fetchBranches();
+    } catch (error) {
+      toast.error('Failed to deactivate branch', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
   };
 
-  const activeBranches = branches.filter(b => b.id !== branch?.id && b.status === 'active');
+  // Set default reason when modal opens
+  React.useEffect(() => {
+    if (open) {
+      setValue('reason', 'other');
+      if (activeBranches.length > 0) {
+        setValue('migrateStudentsTo', activeBranches[0].id);
+      }
+    }
+  }, [open, setValue, activeBranches]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -51,7 +79,7 @@ export function DeactivateBranchModal({ open, onOpenChange, branch, branches }: 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="reason">Reason *</Label>
-            <Select onValueChange={(v) => setValue('reason', v as any)}>
+            <Select value={watch('reason')} onValueChange={(v) => setValue('reason', v as any)}>
               <SelectTrigger><SelectValue placeholder="Select reason" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="closed">Closed</SelectItem>
@@ -71,7 +99,7 @@ export function DeactivateBranchModal({ open, onOpenChange, branch, branches }: 
 
           <div className="space-y-2">
             <Label htmlFor="migrateStudentsTo">Migrate Students To</Label>
-            <Select onValueChange={(v) => setValue('migrateStudentsTo', v)}>
+            <Select value={watch('migrateStudentsTo')} onValueChange={(v) => setValue('migrateStudentsTo', v)}>
               <SelectTrigger><SelectValue placeholder="Select branch" /></SelectTrigger>
               <SelectContent>
                 {activeBranches.map(b => (

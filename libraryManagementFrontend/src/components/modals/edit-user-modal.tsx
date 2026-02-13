@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { editUserSchema, type EditUserFormData } from '@/lib/validation/user';
 import { toast } from 'sonner';
+import { useUserStore } from '@/lib/stores/user-store';
 
 interface EditUserModalProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface EditUserModalProps {
 }
 
 export function EditUserModal({ open, onOpenChange, user }: EditUserModalProps) {
+  const { updateUser, fetchUsers } = useUserStore();
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting }, reset } = useForm<EditUserFormData>({
     resolver: zodResolver(editUserSchema),
   });
@@ -31,9 +33,25 @@ export function EditUserModal({ open, onOpenChange, user }: EditUserModalProps) 
   }, [user, open, setValue]);
 
   const onSubmit = async (data: EditUserFormData) => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast.success('User updated successfully!');
-    onOpenChange(false);
+    if (!user?.id) return;
+    
+    try {
+      await updateUser(user.id, {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        role: data.role,
+        isActive: data.status === 'active',
+      });
+      
+      toast.success('User updated successfully!');
+      onOpenChange(false);
+      await fetchUsers();
+    } catch (error) {
+      toast.error('Failed to update user', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
   };
 
   return (

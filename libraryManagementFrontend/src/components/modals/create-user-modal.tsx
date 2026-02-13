@@ -19,6 +19,8 @@ import { branches } from '@/lib/mockData';
 import { Role } from '@/lib/types';
 import { CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useUserStore } from '@/lib/stores/user-store';
+import { toast } from 'sonner';
 
 interface CreateUserModalProps {
     open: boolean;
@@ -26,17 +28,18 @@ interface CreateUserModalProps {
 }
 
 export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
+    const { createUser, fetchUsers } = useUserStore();
     const [step, setStep] = useState(1);
     const [success, setSuccess] = useState(false);
     const [formData, setFormData] = useState({
-        name: '',
-        phone: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        role: '' as Role | '',
-        permissions: [] as string[],
-        branchId: '',
+        name: 'Test User',
+        phone: '+919876543210',
+        email: 'testuser@smartlibrary.com',
+        password: 'Test@1234',
+        confirmPassword: 'Test@1234',
+        role: 'staff' as Role | '',
+        permissions: ['attendance', 'basic_ops', 'view_students'] as string[],
+        branchId: branches.length > 0 ? branches[0].id : '',
         sendWelcomeEmail: true,
         requirePasswordReset: true,
     });
@@ -54,26 +57,44 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
         }));
     };
 
-    const handleSubmit = () => {
-        console.log('Creating user:', formData);
-        setSuccess(true);
-        setTimeout(() => {
-            setSuccess(false);
-            onOpenChange(false);
-            setStep(1);
-            setFormData({
-                name: '',
-                phone: '',
-                email: '',
-                password: '',
-                confirmPassword: '',
-                role: '',
-                permissions: [],
-                branchId: '',
-                sendWelcomeEmail: true,
-                requirePasswordReset: true,
+    const handleSubmit = async () => {
+        try {
+            await createUser({
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                role: formData.role as Role,
+                permissions: formData.permissions,
+                isActive: true,
+                branchId: formData.role === 'superadmin' ? null : formData.branchId || null,
             });
-        }, 2000);
+            
+            setSuccess(true);
+            toast.success('User created successfully!');
+            
+            setTimeout(async () => {
+                setSuccess(false);
+                onOpenChange(false);
+                setStep(1);
+                setFormData({
+                    name: '',
+                    phone: '',
+                    email: '',
+                    password: '',
+                    confirmPassword: '',
+                    role: '',
+                    permissions: [],
+                    branchId: '',
+                    sendWelcomeEmail: true,
+                    requirePasswordReset: true,
+                });
+                await fetchUsers();
+            }, 1500);
+        } catch (error) {
+            toast.error('Failed to create user', {
+                description: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
     };
 
     const rolePermissions = {

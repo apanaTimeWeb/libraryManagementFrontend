@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,13 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
     ArrowLeft, Edit2, MapPin, Phone, Mail, Building2, Calendar,
-    Users, TrendingUp, IndianRupee, Clock
+    Users, TrendingUp, IndianRupee, Clock, Plus
 } from 'lucide-react';
 import { branches, getUserById, students, payments, users, auditLogs } from '@/lib/mockData';
 import { format } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
 import { SeatHeatmap } from '@/components/charts/seat-heatmap';
 import { Sparkline } from '@/components/charts/sparkline';
+import { NewAdmissionModal } from '@/components/modals/new-admission-modal';
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -28,6 +29,7 @@ const occupancySeries = [72, 74, 76, 78, 79, 81, 82, 83, 84, 85, 86, 87];
 export default function BranchDetailsPage({ params }: PageProps) {
     const { id } = use(params);
     const router = useRouter();
+    const [showAdmissionModal, setShowAdmissionModal] = useState(false);
 
     const branch = branches.find(b => b.id === id);
 
@@ -440,6 +442,11 @@ export default function BranchDetailsPage({ params }: PageProps) {
 
                 {/* Tab 4: Students */}
                 <TabsContent value="students" className="space-y-4">
+                    <div className="flex justify-end mb-4">
+                        <Button onClick={() => setShowAdmissionModal(true)}>
+                            <Plus className="mr-2 h-4 w-4" /> New Admission
+                        </Button>
+                    </div>
                     <div className="grid gap-4 md:grid-cols-4">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -648,6 +655,8 @@ export default function BranchDetailsPage({ params }: PageProps) {
                     </div>
                 </TabsContent>
             </Tabs>
+
+            <NewAdmissionModal open={showAdmissionModal} onOpenChange={setShowAdmissionModal} />
         </div>
     );
 }

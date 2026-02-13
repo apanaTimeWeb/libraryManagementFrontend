@@ -24,6 +24,8 @@ import {
     createBranchSchema,
     type CreateBranchFormData,
 } from '@/lib/validation/branch';
+import { useBranchStore } from '@/lib/stores/branch-store';
+import { toast } from 'sonner';
 
 interface CreateBranchModalProps {
     open: boolean;
@@ -32,8 +34,11 @@ interface CreateBranchModalProps {
 
 export function CreateBranchModal({ open, onOpenChange }: CreateBranchModalProps) {
     const router = useRouter();
+    const { createBranch, fetchBranches } = useBranchStore();
     const [step, setStep] = useState(1);
     const [success, setSuccess] = useState(false);
+
+    const managers = users.filter(u => u.role === 'manager' && !u.branchId);
 
     const {
         register,
@@ -46,31 +51,30 @@ export function CreateBranchModal({ open, onOpenChange }: CreateBranchModalProps
     } = useForm<CreateBranchFormData>({
         resolver: zodResolver(createBranchSchema),
         defaultValues: {
-            name: '',
-            city: '',
-            address: '',
-            pincode: '',
-            phone: '',
-            email: '',
-            ownerName: '',
-            gstNumber: '',
-            panNumber: '',
+            name: 'Smart Library - Test Branch',
+            city: 'Delhi',
+            address: '123 Test Street, Test Area, Test City',
+            pincode: '110001',
+            phone: '+919876543210',
+            email: 'test@smartlibrary.com',
+            ownerName: 'Test Owner',
+            gstNumber: '22AAAAA0000A1Z5',
+            panNumber: 'ABCDE1234F',
             totalCapacity: 100,
-            acSeats: 50,
-            nonAcSeats: 50,
-            monthlyRent: 0,
-            securityDeposit: 0,
+            acSeats: 60,
+            nonAcSeats: 40,
+            monthlyRent: 50000,
+            securityDeposit: 5000,
             managerId: '',
             morningShift: { start: '06:00', end: '14:00' },
             eveningShift: { start: '14:00', end: '22:00' },
             allowWaitlist: true,
             requireSecurityDeposit: false,
-            lateFeePerDay: 0,
+            lateFeePerDay: 10,
         },
     });
 
     const formValues = watch();
-    const managers = users.filter(u => u.role === 'manager' && !u.branchId);
 
     const cities = [
         'Delhi',
@@ -100,8 +104,8 @@ export function CreateBranchModal({ open, onOpenChange }: CreateBranchModalProps
                 fields = ['totalCapacity', 'monthlyRent'];
                 break;
             case 4:
-                fields = ['managerId'];
-                break;
+                // Manager is now optional, no validation needed
+                return true;
             case 5:
                 // No required fields in step 5 (all optional)
                 return true;
@@ -123,19 +127,42 @@ export function CreateBranchModal({ open, onOpenChange }: CreateBranchModalProps
     };
 
     const onSubmit = async (data: CreateBranchFormData) => {
-        console.log('Creating branch:', data);
-
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        setSuccess(true);
-        setTimeout(() => {
-            setSuccess(false);
-            onOpenChange(false);
-            setStep(1);
-            reset();
-            router.refresh();
-        }, 2000);
+        try {
+            await createBranch({
+                name: data.name,
+                city: data.city,
+                address: data.address,
+                contactNumber: data.phone,
+                email: data.email,
+                status: 'active',
+                capacity: data.totalCapacity,
+                occupancy: 0,
+                revenue: 0,
+                defaultShiftMorning: data.morningShift,
+                defaultShiftEvening: data.eveningShift,
+                pincode: data.pincode,
+                managerId: data.managerId,
+                ownerName: data.ownerName,
+                gstNumber: data.gstNumber,
+                panNumber: data.panNumber,
+                monthlyRent: data.monthlyRent,
+            });
+            
+            setSuccess(true);
+            toast.success('Branch created successfully!');
+            
+            setTimeout(async () => {
+                setSuccess(false);
+                onOpenChange(false);
+                setStep(1);
+                reset();
+                await fetchBranches();
+            }, 1500);
+        } catch (error) {
+            toast.error('Failed to create branch', {
+                description: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
     };
 
     const handleClose = () => {
@@ -397,28 +424,27 @@ export function CreateBranchModal({ open, onOpenChange }: CreateBranchModalProps
                         {/* Step 4: Assign Manager */}
                         {step === 4 && (
                             <div className="grid gap-4 py-4">
-                                <h3 className="font-semibold">Section 4: Assign Manager</h3>
+                                <h3 className="font-semibold">Section 4: Assign Manager (Optional)</h3>
 
                                 {managers.length === 0 ? (
                                     <Alert>
                                         <AlertCircle className="h-4 w-4" />
                                         <AlertDescription>
-                                            No unassigned managers available. Create a manager first or assign later.
+                                            No unassigned managers available. You can assign a manager later from branch settings.
                                         </AlertDescription>
                                     </Alert>
                                 ) : (
                                     <div className="space-y-2">
-                                        <Label htmlFor="managerId">
-                                            Select Manager <span className="text-red-500">*</span>
-                                        </Label>
+                                        <Label htmlFor="managerId">Select Manager (Optional)</Label>
                                         <Select
                                             value={formValues.managerId}
                                             onValueChange={(value) => setValue('managerId', value)}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Choose a manager" />
+                                                <SelectValue placeholder="Skip or choose a manager" />
                                             </SelectTrigger>
                                             <SelectContent>
+                                                <SelectItem value="">Skip - Assign Later</SelectItem>
                                                 {managers.map(manager => (
                                                     <SelectItem key={manager.id} value={manager.id}>
                                                         {manager.name} - {manager.email}
