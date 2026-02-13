@@ -62,10 +62,6 @@ export const userRolePermissionsSchema = z.object({
 // User branch assignment schema (Step 3)
 export const userBranchAssignmentSchema = z.object({
     branchId: z.string().optional(), // Optional for superadmin
-}).superRefine((data, ctx) => {
-    // Branch assignment is required for non-superadmin roles
-    // This will be validated in the form based on selected role
-    return true;
 });
 
 // User review schema (Step 4)
