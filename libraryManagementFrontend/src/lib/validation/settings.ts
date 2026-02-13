@@ -12,9 +12,7 @@ export const generalSettingsSchema = z.object({
         .min(3, 'System name must be at least 3 characters')
         .max(100, 'System name must not exceed 100 characters'),
     currency: z.string().min(1, 'Currency is required'),
-    dateFormat: z.enum(['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'], {
-        errorMap: () => ({ message: 'Please select a valid date format' }),
-    }),
+    dateFormat: z.enum(['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']),
     timezone: z.string().min(1, 'Timezone is required'),
     supportEmail: emailSchema,
     supportPhone: z
@@ -171,9 +169,7 @@ export const communicationSettingsSchema = z.object({
 export const backupSettingsSchema = z.object({
     // Auto Backup
     enableAutoBackup: z.boolean().default(true),
-    backupFrequency: z.enum(['hourly', 'daily', 'weekly'], {
-        errorMap: () => ({ message: 'Please select a valid backup frequency' }),
-    }).default('daily'),
+    backupFrequency: z.enum(['hourly', 'daily', 'weekly']).optional(),
     backupRetentionDays: z
         .number()
         .int()

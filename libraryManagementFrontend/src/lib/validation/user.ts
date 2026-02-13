@@ -6,9 +6,7 @@ import { nameSchema, phoneSchema, emailSchema, passwordSchema } from './common';
  */
 
 // Available user roles
-export const userRoleSchema = z.enum(['superadmin', 'owner', 'manager', 'staff'], {
-    errorMap: () => ({ message: 'Please select a valid role' }),
-});
+export const userRoleSchema = z.enum(['superadmin', 'owner', 'manager', 'staff']);
 
 // Available permissions
 export const permissionSchema = z.enum([
