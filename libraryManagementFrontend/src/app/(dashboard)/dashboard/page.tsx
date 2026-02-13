@@ -192,6 +192,7 @@ function DashboardContent() {
             </div>
 
             {/* Data Tables Tabs */}
+            {isMounted && user?.role !== 'superadmin' && (
             <Tabs defaultValue="renewals" className="space-y-4">
                 <TabsList>
                     <TabsTrigger value="renewals">Renewals Due</TabsTrigger>
@@ -329,6 +330,7 @@ function DashboardContent() {
                     </Card>
                 </TabsContent>
             </Tabs>
+            )}
 
             {/* Floating Action Button Placeholder - Implementing as fixed position button */}
             {isMounted && user?.role !== 'superadmin' && (
