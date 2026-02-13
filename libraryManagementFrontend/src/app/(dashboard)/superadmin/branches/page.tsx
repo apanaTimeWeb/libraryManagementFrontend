@@ -12,9 +12,11 @@ import { BranchTable, type BranchTableRow } from '@/components/tables/branch-tab
 import { toast } from 'sonner';
 import { useBranchStore } from '@/lib/stores/branch-store';
 import { getUserById } from '@/lib/mockData';
+import { useAuthStore } from '@/lib/stores/auth-store';
 
 export default function BranchManagementPage() {
   const router = useRouter();
+  const { user } = useAuthStore();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -70,9 +72,11 @@ export default function BranchManagementPage() {
             Manage all library branches, view performance, and configure settings.
           </p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Create New Branch
-        </Button>
+        {user?.role !== 'superadmin' && (
+          <Button onClick={() => setShowCreateModal(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Create New Branch
+          </Button>
+        )}
       </div>
 
       <Card>

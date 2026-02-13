@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { SeatHeatmap } from '@/components/charts/seat-heatmap';
 import { Sparkline } from '@/components/charts/sparkline';
 import { NewAdmissionModal } from '@/components/modals/new-admission-modal';
+import { useAuthStore } from '@/lib/stores/auth-store';
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -29,7 +30,13 @@ const occupancySeries = [72, 74, 76, 78, 79, 81, 82, 83, 84, 85, 86, 87];
 export default function BranchDetailsPage({ params }: PageProps) {
     const { id } = use(params);
     const router = useRouter();
+    const { user } = useAuthStore();
     const [showAdmissionModal, setShowAdmissionModal] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const branch = branches.find(b => b.id === id);
 
@@ -442,11 +449,13 @@ export default function BranchDetailsPage({ params }: PageProps) {
 
                 {/* Tab 4: Students */}
                 <TabsContent value="students" className="space-y-4">
-                    <div className="flex justify-end mb-4">
-                        <Button onClick={() => setShowAdmissionModal(true)}>
-                            <Plus className="mr-2 h-4 w-4" /> New Admission
-                        </Button>
-                    </div>
+                    {isMounted && user?.role !== 'superadmin' && (
+                        <div className="flex justify-end mb-4">
+                            <Button onClick={() => setShowAdmissionModal(true)}>
+                                <Plus className="mr-2 h-4 w-4" /> New Admission
+                            </Button>
+                        </div>
+                    )}
                     <div className="grid gap-4 md:grid-cols-4">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
