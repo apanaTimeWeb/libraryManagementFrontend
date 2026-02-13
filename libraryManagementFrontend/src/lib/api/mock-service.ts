@@ -2,6 +2,13 @@ import { branches, users, students, payments, auditLogs } from '@/lib/mockData';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Create mutable copies that persist during the session
+let mutableBranches = [...branches];
+let mutableUsers = [...users];
+let mutableStudents = [...students];
+let mutablePayments = [...payments];
+let mutableAuditLogs = [...auditLogs];
+
 interface PaginationParams {
   page: number;
   limit: number;
@@ -23,7 +30,7 @@ export async function fetchBranches(params: PaginationParams & {
 }): Promise<PaginatedResponse<typeof branches[0]>> {
   await delay(300);
   
-  let filtered = [...branches];
+  let filtered = [...mutableBranches];
   
   if (params.status && params.status !== 'all') {
     filtered = filtered.filter(b => b.status === params.status);
@@ -54,16 +61,28 @@ export async function fetchBranches(params: PaginationParams & {
 
 export async function createBranch(data: any) {
   await delay(500);
-  return { success: true, data: { ...data, id: Date.now().toString() } };
+  const newBranch = { 
+    ...data, 
+    id: `br-${Date.now()}`,
+    operationalSince: new Date().toISOString().split('T')[0],
+    createdAt: new Date().toISOString(),
+  };
+  mutableBranches = [newBranch, ...mutableBranches];
+  return { success: true, data: newBranch };
 }
 
 export async function updateBranch(id: string, data: any) {
   await delay(400);
+  const index = mutableBranches.findIndex(b => b.id === id);
+  if (index !== -1) {
+    mutableBranches[index] = { ...mutableBranches[index], ...data };
+  }
   return { success: true, data: { ...data, id } };
 }
 
 export async function deleteBranch(id: string) {
   await delay(300);
+  mutableBranches = mutableBranches.filter(b => b.id !== id);
   return { success: true };
 }
 
@@ -76,7 +95,7 @@ export async function fetchUsers(params: PaginationParams & {
 }): Promise<PaginatedResponse<typeof users[0]>> {
   await delay(300);
   
-  let filtered = [...users];
+  let filtered = [...mutableUsers];
   
   if (params.role && params.role !== 'all') {
     filtered = filtered.filter(u => u.role === params.role);
@@ -110,16 +129,29 @@ export async function fetchUsers(params: PaginationParams & {
 
 export async function createUser(data: any) {
   await delay(500);
-  return { success: true, data: { ...data, id: Date.now().toString() } };
+  const newUser = {
+    ...data,
+    id: `usr-${Date.now()}`,
+    avatarUrl: `https://i.pravatar.cc/150?u=${data.email}`,
+    lastLogin: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+  };
+  mutableUsers = [newUser, ...mutableUsers];
+  return { success: true, data: newUser };
 }
 
 export async function updateUser(id: string, data: any) {
   await delay(400);
+  const index = mutableUsers.findIndex(u => u.id === id);
+  if (index !== -1) {
+    mutableUsers[index] = { ...mutableUsers[index], ...data };
+  }
   return { success: true, data: { ...data, id } };
 }
 
 export async function deleteUser(id: string) {
   await delay(300);
+  mutableUsers = mutableUsers.filter(u => u.id !== id);
   return { success: true };
 }
 
@@ -131,7 +163,7 @@ export async function fetchAuditLogs(params: PaginationParams & {
 }): Promise<PaginatedResponse<typeof auditLogs[0]>> {
   await delay(300);
   
-  let filtered = [...auditLogs];
+  let filtered = [...mutableAuditLogs];
   
   if (params.action) {
     filtered = filtered.filter(log => log.action === params.action);
