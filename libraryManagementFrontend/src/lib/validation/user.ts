@@ -72,8 +72,8 @@ export const userBranchAssignmentSchema = z.object({
 
 // User review schema (Step 4)
 export const userReviewSchema = z.object({
-    sendWelcomeEmail: z.boolean().default(true),
-    requirePasswordReset: z.boolean().default(false),
+    sendWelcomeEmail: z.boolean().optional(),
+    requirePasswordReset: z.boolean().optional(),
 });
 
 // Combined create user schema (all steps)
@@ -86,8 +86,8 @@ export const createUserSchema = z.object({
     role: userRoleSchema,
     permissions: z.array(permissionSchema).min(1),
     branchId: z.string().optional(),
-    sendWelcomeEmail: z.boolean().default(true),
-    requirePasswordReset: z.boolean().default(false),
+    sendWelcomeEmail: z.boolean().optional(),
+    requirePasswordReset: z.boolean().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
@@ -128,9 +128,9 @@ export const editUserSchema = z.object({
 export const resetPasswordSchema = z.object({
     userId: z.string().min(1, 'User ID is required'),
     newPassword: passwordSchema.optional(), // Optional if auto-generating
-    autoGenerate: z.boolean().default(false),
-    sendEmail: z.boolean().default(true),
-    forceChangeOnNextLogin: z.boolean().default(true),
+    autoGenerate: z.boolean().optional(),
+    sendEmail: z.boolean().optional(),
+    forceChangeOnNextLogin: z.boolean().optional(),
 }).refine((data) => {
     // Either auto-generate or provide new password
     return data.autoGenerate || (data.newPassword && data.newPassword.length > 0);

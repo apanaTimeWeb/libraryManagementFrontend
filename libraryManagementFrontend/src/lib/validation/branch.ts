@@ -66,8 +66,8 @@ export const branchConfigurationSchema = z.object({
         .int('Non-AC seats must be a whole number')
         .min(0, 'Non-AC seats cannot be negative')
         .optional(),
-    monthlyRent: amountSchema,
-    securityDeposit: amountSchema.optional(),
+    monthlyRent: z.number().nonnegative('Monthly rent must be non-negative'),
+    securityDeposit: z.number().nonnegative('Security deposit must be non-negative').optional(),
     operationalSince: z.string().optional(),
 }).refine(
     (data) => {
@@ -92,9 +92,9 @@ export const branchDefaultSettingsSchema = z.object({
     morningShift: shiftTimingSchema.optional(),
     eveningShift: shiftTimingSchema.optional(),
     defaultPlanId: z.string().optional(),
-    allowWaitlist: z.boolean().default(true),
-    requireSecurityDeposit: z.boolean().default(false),
-    lateFeePerDay: amountSchema.default(0),
+    allowWaitlist: z.boolean().optional(),
+    requireSecurityDeposit: z.boolean().optional(),
+    lateFeePerDay: z.number().nonnegative('Late fee must be non-negative').optional(),
 });
 
 // Combined create branch schema (all steps)
@@ -119,26 +119,24 @@ export const editBranchSchema = z.object({
     totalCapacity: z.number().int().min(10).max(1000).optional(),
     acSeats: z.number().int().min(0).optional(),
     nonAcSeats: z.number().int().min(0).optional(),
-    monthlyRent: amountSchema.optional(),
-    securityDeposit: amountSchema.optional(),
+    monthlyRent: z.number().nonnegative().optional(),
+    securityDeposit: z.number().nonnegative().optional(),
     managerId: z.string().optional(),
     morningShift: shiftTimingSchema.optional(),
     eveningShift: shiftTimingSchema.optional(),
     defaultPlanId: z.string().optional(),
     allowWaitlist: z.boolean().optional(),
     requireSecurityDeposit: z.boolean().optional(),
-    lateFeePerDay: amountSchema.optional(),
+    lateFeePerDay: z.number().nonnegative().optional(),
 });
 
 // Deactivate branch schema
 export const deactivateBranchSchema = z.object({
     id: z.string().min(1, 'Branch ID is required'),
-    reason: z.enum(['closed', 'relocated', 'poor_performance', 'other'], {
-        errorMap: () => ({ message: 'Please select a reason' }),
-    }),
+    reason: z.enum(['closed', 'relocated', 'poor_performance', 'other']),
     reasonNotes: z.string().min(10, 'Please provide detailed notes (minimum 10 characters)'),
     migrateStudentsTo: z.string().optional(),
-    archiveData: z.boolean().default(true),
+    archiveData: z.boolean().optional(),
 });
 
 // Branch filter schema

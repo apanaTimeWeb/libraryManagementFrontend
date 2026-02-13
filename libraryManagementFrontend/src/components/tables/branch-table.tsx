@@ -139,7 +139,6 @@ export function BranchTable({ data, onEdit, onView, onDelete, onDeactivate }: Br
     filterFns: {
       globalText: globalTextFilter,
     },
-    globalFilterFn: 'globalText',
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

@@ -16,9 +16,7 @@ export const sendAnnouncementSchema = z.object({
         .min(10, 'Message must be at least 10 characters')
         .max(2000, 'Message must not exceed 2000 characters'),
 
-    targetAudience: z.enum(['all', 'branch', 'role', 'custom'], {
-        errorMap: () => ({ message: 'Please select a target audience' }),
-    }),
+    targetAudience: z.enum(['all', 'branch', 'role', 'custom']),
 
     targetBranchId: z.string().optional(),
     targetRole: z.enum(['superadmin', 'owner', 'manager', 'staff']).optional(),
@@ -26,13 +24,13 @@ export const sendAnnouncementSchema = z.object({
 
     channels: z.array(z.enum(['email', 'sms', 'whatsapp', 'in-app'])).min(1, 'Select at least one channel'),
 
-    scheduleType: z.enum(['immediate', 'scheduled']).default('immediate'),
+    scheduleType: z.enum(['immediate', 'scheduled']).optional(),
     scheduledDate: z.string().optional(), // ISO date string
     scheduledTime: z.string().optional(), // HH:MM format
 
-    priority: z.enum(['low', 'medium', 'high']).default('medium'),
+    priority: z.enum(['low', 'medium', 'high']).optional(),
 
-    allowReplies: z.boolean().default(false),
+    allowReplies: z.boolean().optional(),
 }).refine((data) => {
     // If target is branch, branchId is required
     if (data.targetAudience === 'branch') {

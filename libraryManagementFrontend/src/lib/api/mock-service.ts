@@ -101,7 +101,7 @@ export async function fetchUsers(params: PaginationParams & {
     filtered = filtered.filter(u => u.role === params.role);
   }
   if (params.status && params.status !== 'all') {
-    filtered = filtered.filter(u => u.status === params.status);
+    filtered = filtered.filter(u => u.isActive === (params.status === 'active'));
   }
   if (params.branchId) {
     filtered = filtered.filter(u => u.branchId === params.branchId);
@@ -175,7 +175,7 @@ export async function fetchAuditLogs(params: PaginationParams & {
     const search = params.search.toLowerCase();
     filtered = filtered.filter(log =>
       log.action.toLowerCase().includes(search) ||
-      log.details.toLowerCase().includes(search)
+      log.entityType.toLowerCase().includes(search)
     );
   }
   

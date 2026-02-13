@@ -138,7 +138,6 @@ export function UserTable({ data, onEdit, onView, onDelete, onResetPassword }: U
     filterFns: {
       globalText: globalTextFilter,
     },
-    globalFilterFn: 'globalText',
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

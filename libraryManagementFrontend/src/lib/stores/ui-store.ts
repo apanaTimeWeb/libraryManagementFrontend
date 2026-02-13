@@ -49,6 +49,9 @@ export const useUIStore = create<UIStore>()(
         }), {} as UIStore['modals'])
       })),
     }),
-    { name: 'ui-storage', partiallyPersist: (state) => ({ sidebarCollapsed: state.sidebarCollapsed }) }
+    { 
+      name: 'ui-storage',
+      partialize: (state) => ({ sidebarCollapsed: state.sidebarCollapsed })
+    }
   )
 );
