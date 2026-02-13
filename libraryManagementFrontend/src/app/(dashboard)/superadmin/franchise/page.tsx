@@ -12,6 +12,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { branches, students, payments } from '@/lib/mockData';
+import { IndiaMap } from '@/components/charts/india-map';
 
 export default function FranchiseAnalyticsPage() {
     // Calculate metrics for each branch
@@ -228,34 +229,8 @@ export default function FranchiseAnalyticsPage() {
                 </CardContent>
             </Card>
 
-            {/* Geographical Distribution (Simplified SVG Map of India would go here) */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Geographical Distribution</CardTitle>
-                    <CardDescription>Branch presence across India</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {Array.from(new Set(branches.map(b => b.city))).map(city => {
-                            const cityBranches = branches.filter(b => b.city === city);
-                            const cityRevenue = branchMetrics.filter(b => b.city === city).reduce((sum, b) => sum + b.totalRevenue, 0);
-
-                            return (
-                                <div key={city} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <Map className="h-5 w-5 text-blue-500" />
-                                        <span className="text-xs font-semibold text-muted-foreground">
-                                            {cityBranches.length} branch{cityBranches.length > 1 ? 'es' : ''}
-                                        </span>
-                                    </div>
-                                    <h3 className="font-bold text-lg">{city}</h3>
-                                    <p className="text-sm text-muted-foreground">₹{cityRevenue.toLocaleString()}</p>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </CardContent>
-            </Card>
+            {/* Geographical Distribution (Replaced with interactive India map) */}
+            <IndiaMap />
         </div>
     );
 }
