@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NewAdmissionModal } from '@/components/modals/new-admission-modal';
 
 // Mock Data for Tables
 const renewals = [
@@ -51,6 +52,7 @@ function DashboardContent() {
     const searchParams = useSearchParams();
     const branchId = searchParams.get('branch');
     const branchName = branchId ? branchId.replace('-', ' ').toUpperCase() : 'YOUR BRANCH';
+    const [showAdmissionModal, setShowAdmissionModal] = useState(false);
 
     return (
         <div className="space-y-6">
@@ -62,7 +64,7 @@ function DashboardContent() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button>
+                    <Button onClick={() => setShowAdmissionModal(true)}>
                         <Plus className="mr-2 h-4 w-4" /> New Admission
                     </Button>
                 </div>
@@ -321,11 +323,12 @@ function DashboardContent() {
 
             {/* Floating Action Button Placeholder - Implementing as fixed position button */}
             <div className="fixed bottom-8 right-8 flex flex-col gap-2">
-                <Button className="h-14 w-14 rounded-full shadow-lg" size="icon">
+                <Button className="h-14 w-14 rounded-full shadow-lg" size="icon" onClick={() => setShowAdmissionModal(true)}>
                     <Plus className="h-6 w-6" />
                 </Button>
             </div>
 
+            <NewAdmissionModal open={showAdmissionModal} onOpenChange={setShowAdmissionModal} />
         </div>
     );
 }
