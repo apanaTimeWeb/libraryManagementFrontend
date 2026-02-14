@@ -12,15 +12,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, Search, Menu, Building } from 'lucide-react';
+import { Bell, Search, Menu, Building, User, Settings, LogOut } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { NotificationDropdown } from '@/components/layout/notification-dropdown';
 import { useSocketForNotifications } from '@/lib/socket-client';
 
 export function Topbar() {
     const { user, logout } = useAuth();
     const pathname = usePathname();
+    const router = useRouter();
 
     // Initialize socket connection for real-time notifications
     useSocketForNotifications();
@@ -100,10 +101,19 @@ export function Topbar() {
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>Profile</DropdownMenuItem>
-                        <DropdownMenuItem>Settings</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push(user.role === 'superadmin' ? `/superadmin/users/${user.id}` : `/dashboard/profile`)}>
+                            <User className="mr-2 h-4 w-4" />
+                            Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push(user.role === 'superadmin' ? '/superadmin/settings' : '/settings')}>
+                            <Settings className="mr-2 h-4 w-4" />
+                            Settings
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
+                        <DropdownMenuItem onClick={logout}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Log out
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
