@@ -14,7 +14,8 @@ import {
     Calendar,
     Plus,
     Search,
-    MoreVertical
+    MoreVertical,
+    CalendarIcon
 } from 'lucide-react';
 import { RevenueChart } from '@/components/charts/revenue-chart'; // Reusing existing
 import {
@@ -30,6 +31,12 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NewAdmissionModal } from '@/components/modals/new-admission-modal';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { cn } from '@/lib/utils';
+
+type FilterType = 'week' | 'month' | 'custom';
 
 // Mock Data for Tables
 const renewals = [
@@ -56,6 +63,22 @@ function DashboardContent() {
     const { user } = useAuthStore();
     const [showAdmissionModal, setShowAdmissionModal] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
+    const [filterType, setFilterType] = useState<FilterType>('month');
+    const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+        from: startOfMonth(new Date()),
+        to: endOfMonth(new Date()),
+    });
+
+    const handleFilterChange = (type: FilterType) => {
+        setFilterType(type);
+        const now = new Date();
+        
+        if (type === 'week') {
+            setDateRange({ from: startOfWeek(now), to: endOfWeek(now) });
+        } else if (type === 'month') {
+            setDateRange({ from: startOfMonth(now), to: endOfMonth(now) });
+        }
+    };
 
     useEffect(() => {
         setIsMounted(true);
@@ -70,13 +93,54 @@ function DashboardContent() {
                         Overview for <span className="font-semibold text-primary">{branchName}</span>
                     </p>
                 </div>
-                {isMounted && user?.role !== 'superadmin' && (
-                    <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant={filterType === 'week' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleFilterChange('week')}
+                    >
+                        Week
+                    </Button>
+                    <Button
+                        variant={filterType === 'month' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleFilterChange('month')}
+                    >
+                        Month
+                    </Button>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={filterType === 'custom' ? 'default' : 'outline'}
+                                size="sm"
+                                className={cn('justify-start text-left font-normal')}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {filterType === 'custom' 
+                                    ? `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
+                                    : 'Custom'}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                            <CalendarComponent
+                                mode="range"
+                                selected={{ from: dateRange.from, to: dateRange.to }}
+                                onSelect={(range) => {
+                                    if (range?.from && range?.to) {
+                                        setFilterType('custom');
+                                        setDateRange({ from: range.from, to: range.to });
+                                    }
+                                }}
+                                numberOfMonths={2}
+                            />
+                        </PopoverContent>
+                    </Popover>
+                    {isMounted && user?.role !== 'superadmin' && (
                         <Button onClick={() => setShowAdmissionModal(true)}>
                             <Plus className="mr-2 h-4 w-4" /> New Admission
                         </Button>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* KPI Cards */}
