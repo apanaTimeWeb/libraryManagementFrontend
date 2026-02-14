@@ -41,7 +41,7 @@ export default function CompareBranchesPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Compare Branches</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Compare Branches</h1>
                 <p className="text-muted-foreground">
                     Analyze performance metrics side-by-side to identify trends and outliers.
                 </p>
@@ -87,7 +87,8 @@ export default function CompareBranchesPage() {
                     <CardDescription>Direct comparison of key operational and financial metrics.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
+                    <div className="overflow-x-auto -mx-6 px-6">
+                        <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="w-[200px]">Metric</TableHead>
@@ -125,6 +126,7 @@ export default function CompareBranchesPage() {
                             ))}
                         </TableBody>
                     </Table>
+                    </div>
                 </CardContent>
             </Card>
 
