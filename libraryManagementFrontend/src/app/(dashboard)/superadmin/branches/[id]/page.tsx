@@ -566,7 +566,9 @@ export default function BranchDetailsPage({ params }: PageProps) {
                                     </div>
                                 </div>
                             </div>
-                            <Button>Update Hours</Button>
+                            {isMounted && user?.role !== 'superadmin' && (
+                                <Button>Update Hours</Button>
+                            )}
                         </CardContent>
                     </Card>
 
