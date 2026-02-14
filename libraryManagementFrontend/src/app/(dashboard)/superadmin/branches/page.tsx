@@ -72,11 +72,9 @@ export default function BranchManagementPage() {
             Manage all library branches, view performance, and configure settings.
           </p>
         </div>
-        {user?.role !== 'superadmin' && (
-          <Button onClick={() => setShowCreateModal(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Create New Branch
-          </Button>
-        )}
+        <Button onClick={() => setShowCreateModal(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Create New Branch
+        </Button>
       </div>
 
       <Card>

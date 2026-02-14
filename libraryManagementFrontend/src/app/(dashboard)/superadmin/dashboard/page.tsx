@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { RevenueChart } from '@/components/charts/revenue-chart';
 import { UserDistributionChart } from '@/components/charts/user-distribution';
 import {
@@ -30,10 +30,12 @@ import {
     Bell,
     Database,
     FileText,
+    Search,
 } from 'lucide-react';
 import { branches, users, students } from '@/lib/mockData';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { CreateBranchModal } from '@/components/modals/create-branch-modal';
 import { CreateUserModal } from '@/components/modals/create-user-modal';
 
@@ -41,11 +43,19 @@ export default function SuperAdminDashboard() {
     const router = useRouter();
     const [showCreateBranch, setShowCreateBranch] = useState(false);
     const [showCreateUser, setShowCreateUser] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const totalRevenue = 4567000;
     const totalUsers = users.length;
     const activeStudents = students.filter(s => s.status === 'active').length;
     const activeBranches = branches.filter(b => b.status === 'active').length;
+
+    const filteredBranches = useMemo(() => {
+        return branches.filter(branch => 
+            branch.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            branch.city.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [searchQuery]);
 
     return (
         <div className="flex flex-col gap-6">
@@ -191,8 +201,21 @@ export default function SuperAdminDashboard() {
             {/* Branch Performance Table */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Branch Performance</CardTitle>
-                    <CardDescription>Real-time metrics from top performing branches.</CardDescription>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <CardTitle>Branch Performance</CardTitle>
+                            <CardDescription>Real-time metrics from top performing branches.</CardDescription>
+                        </div>
+                        <div className="relative w-full sm:w-64">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search branches..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-8"
+                            />
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -207,31 +230,39 @@ export default function SuperAdminDashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {branches.map((branch) => (
-                                <TableRow key={branch.id} className="cursor-pointer hover:bg-slate-50" onClick={() => router.push(`/superadmin/branches/${branch.id}`)}>
-                                    <TableCell className="font-medium">{branch.name}</TableCell>
-                                    <TableCell>{branch.city}</TableCell>
-                                    <TableCell>{Math.floor(branch.capacity * (branch.occupancy / 100))}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-medium">{branch.occupancy}%</span>
-                                            <div className="h-2 w-16 rounded-full bg-slate-100">
-                                                <div
-                                                    className={`h-full rounded-full ${branch.occupancy > 80 ? 'bg-green-500' : branch.occupancy > 60 ? 'bg-yellow-500' : 'bg-red-500'
-                                                        }`}
-                                                    style={{ width: `${branch.occupancy}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">₹{branch.revenue.toLocaleString()}</TableCell>
-                                    <TableCell className="text-right">
-                                        <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                            {branch.status}
-                                        </span>
+                            {filteredBranches.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                                        No branches found
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : (
+                                filteredBranches.map((branch) => (
+                                    <TableRow key={branch.id} className="cursor-pointer hover:bg-slate-50" onClick={() => router.push(`/superadmin/branches/${branch.id}`)}>
+                                        <TableCell className="font-medium">{branch.name}</TableCell>
+                                        <TableCell>{branch.city}</TableCell>
+                                        <TableCell>{Math.floor(branch.capacity * (branch.occupancy / 100))}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium">{branch.occupancy}%</span>
+                                                <div className="h-2 w-16 rounded-full bg-slate-100">
+                                                    <div
+                                                        className={`h-full rounded-full ${branch.occupancy > 80 ? 'bg-green-500' : branch.occupancy > 60 ? 'bg-yellow-500' : 'bg-red-500'
+                                                            }`}
+                                                        style={{ width: `${branch.occupancy}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">₹{branch.revenue.toLocaleString()}</TableCell>
+                                        <TableCell className="text-right">
+                                            <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                                {branch.status}
+                                            </span>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>
