@@ -24,6 +24,8 @@ import { ArrowUpDown, MoreHorizontal, Edit, Eye, Trash2, Power, Download } from 
 import type { Branch } from '@/lib/types';
 import { globalTextFilter } from '@/lib/table-utils';
 
+import { BulkActionsToolbar } from './bulk-actions-toolbar';
+
 export type BranchTableRow = Branch & { managerName?: string };
 
 interface BranchTableProps {
@@ -32,9 +34,12 @@ interface BranchTableProps {
   onView?: (branch: BranchTableRow) => void;
   onDelete?: (branch: BranchTableRow) => void;
   onDeactivate?: (branch: BranchTableRow) => void;
+  onBulkActivate?: (branches: BranchTableRow[]) => Promise<void>;
+  onBulkDeactivate?: (branches: BranchTableRow[]) => Promise<void>;
+  onBulkDelete?: (branches: BranchTableRow[]) => Promise<void>;
 }
 
-export function BranchTable({ data, onEdit, onView, onDelete, onDeactivate }: BranchTableProps) {
+export function BranchTable({ data, onEdit, onView, onDelete, onDeactivate, onBulkActivate, onBulkDeactivate, onBulkDelete }: BranchTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -209,36 +214,27 @@ export function BranchTable({ data, onEdit, onView, onDelete, onDeactivate }: Br
       </div>
 
       {selectedRows.length > 0 && (
-        <div className="flex items-center justify-between rounded-md bg-muted px-4 py-3">
-          <p className="text-sm font-medium">{selectedRows.length} branch(es) selected</p>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => table.resetRowSelection()}>
-              <Power className="mr-2 h-4 w-4" /> Clear Selection
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const csv = [
-                  ['Name', 'City', 'Status', 'Capacity', 'Occupancy', 'Revenue'].join(','),
-                  ...selectedRows.map((row) => {
-                    const b = row.original;
-                    return [b.name, b.city, b.status, b.capacity, b.occupancy, b.revenue].join(',');
-                  }),
-                ].join('\n');
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `branches_${new Date().toISOString().split('T')[0]}.csv`;
-                a.click();
-                table.resetRowSelection();
-              }}
-            >
-              <Download className="mr-2 h-4 w-4" /> Export
-            </Button>
-          </div>
-        </div>
+        <BulkActionsToolbar
+          selectedCount={selectedRows.length}
+          selectedRows={selectedRows.map(r => r.original)}
+          onClearSelection={() => table.resetRowSelection()}
+          onExport={(rows) => {
+            const csv = [
+              ['Name', 'City', 'Status', 'Capacity', 'Occupancy', 'Revenue'].join(','),
+              ...rows.map((b) => [b.name, b.city, b.status, b.capacity, b.occupancy, b.revenue].join(',')),
+            ].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `branches_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+          }}
+          onBulkActivate={onBulkActivate}
+          onBulkDeactivate={onBulkDeactivate}
+          onBulkDelete={onBulkDelete}
+          entityName="branch"
+        />
       )}
 
       <div className="rounded-md border">

@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import {
     Dialog,
     DialogContent,
@@ -10,8 +13,8 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -22,11 +25,28 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useUserStore } from '@/lib/stores/user-store';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { createUserSchema } from '@/lib/validation/user';
 
 interface CreateUserModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
+
+const formSchema = z.object({
+    name: z.string().min(2, 'Name must be at least 2 characters'),
+    email: z.string().email('Invalid email address'),
+    phone: z.string().regex(/^\+?[1-9]\d{9,14}$/, 'Invalid phone number'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string(),
+    role: z.enum(['superadmin', 'owner', 'manager', 'staff']),
+    permissions: z.array(z.string()),
+    branchId: z.string().optional(),
+    sendWelcomeEmail: z.boolean(),
+    requirePasswordReset: z.boolean(),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+});
 
 export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
     const { createUser, fetchUsers } = useUserStore();
@@ -36,44 +56,33 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
     
     const isSuperAdmin = currentUser?.role === 'superadmin';
     const isOwner = currentUser?.role === 'owner';
-    const allowedRoles = isSuperAdmin ? ['owner'] : isOwner ? ['manager', 'staff'] : [];
     
-    const [formData, setFormData] = useState({
-        name: 'Test User',
-        phone: '+919876543210',
-        email: 'testuser@smartlibrary.com',
-        password: 'Test@1234',
-        confirmPassword: 'Test@1234',
-        role: '' as Role | '',
-        permissions: [] as string[],
-        branchId: isOwner ? (currentUser.branchId || '') : (branches.length > 0 ? branches[0].id : ''),
-        sendWelcomeEmail: true,
-        requirePasswordReset: true,
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            name: '',
+            phone: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+            role: undefined,
+            permissions: [],
+            branchId: isOwner ? currentUser.branchId || '' : '',
+            sendWelcomeEmail: true,
+            requirePasswordReset: true,
+        },
     });
 
-    const handleChange = (field: string, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handlePermissionToggle = (permission: string) => {
-        setFormData(prev => ({
-            ...prev,
-            permissions: prev.permissions.includes(permission)
-                ? prev.permissions.filter(p => p !== permission)
-                : [...prev.permissions, permission]
-        }));
-    };
-
-    const handleSubmit = async () => {
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
-            const branchId = isOwner ? currentUser.branchId : formData.branchId;
+            const branchId = isOwner ? currentUser.branchId : values.branchId;
             
             await createUser({
-                name: formData.name,
-                email: formData.email,
-                phone: formData.phone,
-                role: formData.role as Role,
-                permissions: formData.permissions,
+                name: values.name,
+                email: values.email,
+                phone: values.phone,
+                role: values.role as Role,
+                permissions: values.permissions,
                 isActive: true,
                 branchId: branchId || null,
             });
@@ -85,18 +94,7 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                 setSuccess(false);
                 onOpenChange(false);
                 setStep(1);
-                setFormData({
-                    name: '',
-                    phone: '',
-                    email: '',
-                    password: '',
-                    confirmPassword: '',
-                    role: '',
-                    permissions: [],
-                    branchId: '',
-                    sendWelcomeEmail: true,
-                    requirePasswordReset: true,
-                });
+                form.reset();
                 await fetchUsers();
             }, 1500);
         } catch (error) {
@@ -113,7 +111,8 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
         staff: ['attendance', 'basic_ops', 'view_students'],
     };
 
-    const availablePermissions = formData.role ? rolePermissions[formData.role as keyof typeof rolePermissions] : [];
+    const currentRole = form.watch('role');
+    const availablePermissions = currentRole ? rolePermissions[currentRole as keyof typeof rolePermissions] : [];
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -133,61 +132,79 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                         </AlertDescription>
                     </Alert>
                 ) : (
-                    <>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         {step === 1 && (
                             <div className="grid gap-4 py-4">
                                 <h3 className="font-semibold">Step 1: Basic Information</h3>
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Full Name *</Label>
-                                    <Input
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={(e) => handleChange('name', e.target.value)}
-                                        placeholder="John Doe"
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Full Name *</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="John Doe" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="phone"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Phone Number *</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="+919876543210" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="email"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Email Address *</FormLabel>
+                                                <FormControl>
+                                                    <Input type="email" placeholder="user@smartlibrary.com" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="phone">Phone Number *</Label>
-                                        <Input
-                                            id="phone"
-                                            value={formData.phone}
-                                            onChange={(e) => handleChange('phone', e.target.value)}
-                                            placeholder="+919876543210"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email">Email Address *</Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            value={formData.email}
-                                            onChange={(e) => handleChange('email', e.target.value)}
-                                            placeholder="user@smartlibrary.com"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password">Password *</Label>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            value={formData.password}
-                                            onChange={(e) => handleChange('password', e.target.value)}
-                                            placeholder="Min 8 characters"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                                        <Input
-                                            id="confirmPassword"
-                                            type="password"
-                                            value={formData.confirmPassword}
-                                            onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                                            placeholder="Re-enter password"
-                                        />
-                                    </div>
+                                    <FormField
+                                        control={form.control}
+                                        name="password"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Password *</FormLabel>
+                                                <FormControl>
+                                                    <Input type="password" placeholder="Min 8 characters" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="confirmPassword"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Confirm Password *</FormLabel>
+                                                <FormControl>
+                                                    <Input type="password" placeholder="Re-enter password" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
                             </div>
                         )}
@@ -195,101 +212,119 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                         {step === 2 && (
                             <div className="grid gap-4 py-4">
                                 <h3 className="font-semibold">Step 2: Role & Permissions</h3>
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label>Select Role *</Label>
-                                        <RadioGroup value={formData.role} onValueChange={(v) => handleChange('role', v as Role)}>
-                                            {isSuperAdmin && (
-                                                <div className="flex items-start space-x-2 border rounded-lg p-3">
-                                                    <RadioGroupItem value="owner" id="owner" />
-                                                    <div className="flex-1">
-                                                        <Label htmlFor="owner" className="font-semibold cursor-pointer">Owner</Label>
-                                                        <p className="text-sm text-muted-foreground">Full branch access, create managers</p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {isOwner && (
-                                                <>
-                                                    <div className="flex items-start space-x-2 border rounded-lg p-3">
-                                                        <RadioGroupItem value="manager" id="manager" />
-                                                        <div className="flex-1">
-                                                            <Label htmlFor="manager" className="font-semibold cursor-pointer">Manager</Label>
-                                                            <p className="text-sm text-muted-foreground">Operations + limited financials</p>
+                                <FormField
+                                    control={form.control}
+                                    name="role"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Select Role *</FormLabel>
+                                            <FormControl>
+                                                <RadioGroup value={field.value} onValueChange={field.onChange}>
+                                                    {isSuperAdmin && (
+                                                        <div className="flex items-start space-x-2 border rounded-lg p-3">
+                                                            <RadioGroupItem value="owner" id="owner" />
+                                                            <div className="flex-1">
+                                                                <FormLabel htmlFor="owner" className="font-semibold cursor-pointer">Owner</FormLabel>
+                                                                <p className="text-sm text-muted-foreground">Full branch access, create managers</p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="flex items-start space-x-2 border rounded-lg p-3">
-                                                        <RadioGroupItem value="staff" id="staff" />
-                                                        <div className="flex-1">
-                                                            <Label htmlFor="staff" className="font-semibold cursor-pointer">Staff</Label>
-                                                            <p className="text-sm text-muted-foreground">Daily operations only</p>
-                                                        </div>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </RadioGroup>
-                                    </div>
-
-                                    {formData.role && (
-                                        <div className="space-y-2">
-                                            <Label>Permissions</Label>
-                                            <div className="grid grid-cols-2 gap-2 border rounded-lg p-3">
-                                                {availablePermissions.map(permission => (
-                                                    <div key={permission} className="flex items-center space-x-2">
-                                                        <Checkbox
-                                                            id={permission}
-                                                            checked={formData.permissions.includes(permission)}
-                                                            onCheckedChange={() => handlePermissionToggle(permission)}
-                                                        />
-                                                        <Label htmlFor={permission} className="text-sm cursor-pointer">
-                                                            {permission.replace(/_/g, ' ')}
-                                                        </Label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                                                    )}
+                                                    {isOwner && (
+                                                        <>
+                                                            <div className="flex items-start space-x-2 border rounded-lg p-3">
+                                                                <RadioGroupItem value="manager" id="manager" />
+                                                                <div className="flex-1">
+                                                                    <FormLabel htmlFor="manager" className="font-semibold cursor-pointer">Manager</FormLabel>
+                                                                    <p className="text-sm text-muted-foreground">Operations + limited financials</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-start space-x-2 border rounded-lg p-3">
+                                                                <RadioGroupItem value="staff" id="staff" />
+                                                                <div className="flex-1">
+                                                                    <FormLabel htmlFor="staff" className="font-semibold cursor-pointer">Staff</FormLabel>
+                                                                    <p className="text-sm text-muted-foreground">Daily operations only</p>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </RadioGroup>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
                                     )}
-                                </div>
+                                />
+                                {currentRole && (
+                                    <FormField
+                                        control={form.control}
+                                        name="permissions"
+                                        render={() => (
+                                            <FormItem>
+                                                <FormLabel>Permissions</FormLabel>
+                                                <div className="grid grid-cols-2 gap-2 border rounded-lg p-3">
+                                                    {availablePermissions.map(permission => (
+                                                        <FormField
+                                                            key={permission}
+                                                            control={form.control}
+                                                            name="permissions"
+                                                            render={({ field }) => (
+                                                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                                                    <FormControl>
+                                                                        <Checkbox
+                                                                            checked={field.value?.includes(permission)}
+                                                                            onCheckedChange={(checked) => {
+                                                                                return checked
+                                                                                    ? field.onChange([...field.value, permission])
+                                                                                    : field.onChange(field.value?.filter((val) => val !== permission));
+                                                                            }}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormLabel className="text-sm cursor-pointer font-normal">
+                                                                        {permission.replace(/_/g, ' ')}
+                                                                    </FormLabel>
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
                             </div>
                         )}
 
                         {step === 3 && (
                             <div className="grid gap-4 py-4">
                                 <h3 className="font-semibold">Step 3: Branch Assignment</h3>
-                                <div className="space-y-2">
-                                    <Label htmlFor="branchId">Assign Branch *</Label>
-                                    {isOwner ? (
-                                        <Select value={currentUser.branchId || ''} disabled>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Your branch" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {branches.filter(b => b.id === currentUser.branchId).map(branch => (
-                                                    <SelectItem key={branch.id} value={branch.id}>
-                                                        {branch.name} - {branch.city}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    ) : (
-                                        <Select value={formData.branchId} onValueChange={(v) => handleChange('branchId', v)}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a branch" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {branches.map(branch => (
-                                                    <SelectItem key={branch.id} value={branch.id}>
-                                                        {branch.name} - {branch.city}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                <FormField
+                                    control={form.control}
+                                    name="branchId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Assign Branch *</FormLabel>
+                                            <Select value={field.value} onValueChange={field.onChange} disabled={isOwner}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a branch" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {(isOwner ? branches.filter(b => b.id === currentUser.branchId) : branches).map(branch => (
+                                                        <SelectItem key={branch.id} value={branch.id}>
+                                                            {branch.name} - {branch.city}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {isOwner && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Users will be assigned to your branch automatically
+                                                </p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
                                     )}
-                                    {isOwner && (
-                                        <p className="text-xs text-muted-foreground">
-                                            Users will be assigned to your branch automatically
-                                        </p>
-                                    )}
-                                </div>
+                                />
                             </div>
                         )}
 
@@ -299,72 +334,75 @@ export function CreateUserModal({ open, onOpenChange }: CreateUserModalProps) {
                                 <div className="space-y-4 border rounded-lg p-4 bg-slate-50">
                                     <div className="grid grid-cols-2 gap-2">
                                         <span className="text-sm font-medium">Name:</span>
-                                        <span className="text-sm">{formData.name}</span>
+                                        <span className="text-sm">{form.getValues('name')}</span>
 
                                         <span className="text-sm font-medium">Email:</span>
-                                        <span className="text-sm">{formData.email}</span>
+                                        <span className="text-sm">{form.getValues('email')}</span>
 
                                         <span className="text-sm font-medium">Phone:</span>
-                                        <span className="text-sm">{formData.phone}</span>
+                                        <span className="text-sm">{form.getValues('phone')}</span>
 
                                         <span className="text-sm font-medium">Role:</span>
-                                        <span className="text-sm capitalize">{formData.role}</span>
+                                        <span className="text-sm capitalize">{form.getValues('role')}</span>
 
                                         <span className="text-sm font-medium">Branch:</span>
                                         <span className="text-sm">
-                                            {isOwner
-                                                ? branches.find(b => b.id === currentUser.branchId)?.name || 'Not assigned'
-                                                : branches.find(b => b.id === formData.branchId)?.name || 'Not assigned'}
+                                            {branches.find(b => b.id === form.getValues('branchId'))?.name || 'Not assigned'}
                                         </span>
 
                                         <span className="text-sm font-medium">Permissions:</span>
-                                        <span className="text-sm">{formData.permissions.length} selected</span>
+                                        <span className="text-sm">{form.getValues('permissions').length} selected</span>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id="sendWelcomeEmail"
-                                            checked={formData.sendWelcomeEmail}
-                                            onCheckedChange={(checked) => handleChange('sendWelcomeEmail', checked)}
-                                        />
-                                        <Label htmlFor="sendWelcomeEmail" className="cursor-pointer">
-                                            Send Welcome Email
-                                        </Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id="requirePasswordReset"
-                                            checked={formData.requirePasswordReset}
-                                            onCheckedChange={(checked) => handleChange('requirePasswordReset', checked)}
-                                        />
-                                        <Label htmlFor="requirePasswordReset" className="cursor-pointer">
-                                            Require Password Reset on First Login
-                                        </Label>
-                                    </div>
+                                    <FormField
+                                        control={form.control}
+                                        name="sendWelcomeEmail"
+                                        render={({ field }) => (
+                                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                                <FormControl>
+                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                                </FormControl>
+                                                <FormLabel className="cursor-pointer font-normal">Send Welcome Email</FormLabel>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="requirePasswordReset"
+                                        render={({ field }) => (
+                                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                                <FormControl>
+                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                                </FormControl>
+                                                <FormLabel className="cursor-pointer font-normal">Require Password Reset on First Login</FormLabel>
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
                             </div>
                         )}
-                    </>
+                        </form>
+                    </Form>
                 )}
 
                 {!success && (
                     <DialogFooter className="gap-2">
                         {step > 1 && (
-                            <Button variant="outline" onClick={() => setStep(step - 1)}>
+                            <Button type="button" variant="outline" onClick={() => setStep(step - 1)}>
                                 Previous
                             </Button>
                         )}
-                        <Button variant="outline" onClick={() => onOpenChange(false)}>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                             Cancel
                         </Button>
                         {step < 4 ? (
-                            <Button onClick={() => setStep(step + 1)} disabled={step === 2 && !formData.role}>
+                            <Button type="button" onClick={() => setStep(step + 1)} disabled={step === 2 && !currentRole}>
                                 Next
                             </Button>
                         ) : (
-                            <Button onClick={handleSubmit}>
+                            <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
                                 Create User
                             </Button>
                         )}
