@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -16,9 +16,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { users } from '@/lib/mockData';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
     createBranchSchema,
@@ -37,8 +39,18 @@ export function CreateBranchModal({ open, onOpenChange }: CreateBranchModalProps
     const { createBranch, fetchBranches } = useBranchStore();
     const [step, setStep] = useState(1);
     const [success, setSuccess] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedUserId, setSelectedUserId] = useState('');
 
-    const managers = users.filter(u => u.role === 'manager' && !u.branchId);
+    const availableUsers = useMemo(() => {
+        const filtered = users.filter(u => 
+            !u.branchId && 
+            (u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             u.role.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+        return filtered;
+    }, [searchQuery]);
 
     const {
         register,
@@ -424,39 +436,70 @@ export function CreateBranchModal({ open, onOpenChange }: CreateBranchModalProps
                         {/* Step 4: Assign Manager */}
                         {step === 4 && (
                             <div className="grid gap-4 py-4">
-                                <h3 className="font-semibold">Section 4: Assign Manager (Optional)</h3>
+                                <h3 className="font-semibold">Section 4: Assign User (Optional)</h3>
 
-                                {managers.length === 0 ? (
-                                    <Alert>
-                                        <AlertCircle className="h-4 w-4" />
-                                        <AlertDescription>
-                                            No unassigned managers available. You can assign a manager later from branch settings.
-                                        </AlertDescription>
-                                    </Alert>
-                                ) : (
-                                    <div className="space-y-2">
-                                        <Label htmlFor="managerId">Select Manager (Optional)</Label>
-                                        <Select
-                                            value={formValues.managerId}
-                                            onValueChange={(value) => setValue('managerId', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Skip or choose a manager" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="">Skip - Assign Later</SelectItem>
-                                                {managers.map(manager => (
-                                                    <SelectItem key={manager.id} value={manager.id}>
-                                                        {manager.name} - {manager.email}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        {errors.managerId && (
-                                            <p className="text-sm text-red-500">{errors.managerId.message}</p>
-                                        )}
+                                <div className="space-y-4">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search by name, email, or role..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-9"
+                                        />
                                     </div>
-                                )}
+
+                                    {availableUsers.length === 0 ? (
+                                        <Alert>
+                                            <AlertCircle className="h-4 w-4" />
+                                            <AlertDescription>
+                                                No unassigned users found. You can assign a user later from branch settings.
+                                            </AlertDescription>
+                                        </Alert>
+                                    ) : (
+                                        <div className="max-h-[300px] overflow-y-auto space-y-2 border rounded-md p-2">
+                                            {availableUsers.map(user => (
+                                                <div
+                                                    key={user.id}
+                                                    onClick={() => {
+                                                        setSelectedUserId(user.id);
+                                                        setValue('managerId', user.id);
+                                                    }}
+                                                    className={`flex items-center gap-3 p-3 rounded-md cursor-pointer transition-colors ${
+                                                        selectedUserId === user.id
+                                                            ? 'bg-primary/10 border-2 border-primary'
+                                                            : 'hover:bg-accent border-2 border-transparent'
+                                                    }`}
+                                                >
+                                                    <Avatar>
+                                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-sm">{user.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                                                    </div>
+                                                    <Badge variant="outline" className="capitalize">
+                                                        {user.role}
+                                                    </Badge>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {selectedUserId && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                setSelectedUserId('');
+                                                setValue('managerId', '');
+                                            }}
+                                        >
+                                            Clear Selection
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                         )}
 
