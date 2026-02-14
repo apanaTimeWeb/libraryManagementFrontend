@@ -429,33 +429,6 @@ export default function BranchDetailsPage({ params }: PageProps) {
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Recent Payments</CardTitle>
-                            <CardDescription>Last 50 transactions</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                {branchPayments.slice(0, 10).map((payment) => {
-                                    const student = students.find(s => s.id === payment.studentId);
-                                    return (
-                                        <div key={payment.id} className="flex items-center justify-between py-2 border-b">
-                                            <div>
-                                                <p className="font-medium text-sm">{student?.name || 'Unknown'}</p>
-                                                <p className="text-xs text-muted-foreground capitalize">{payment.method} • {payment.type}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-medium">₹{payment.amount}</p>
-                                                <Badge variant={payment.status === 'paid' ? 'default' : 'secondary'} className="text-xs">
-                                                    {payment.status}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </CardContent>
-                    </Card>
                 </TabsContent>
 
                 {/* Tab 3: Users/Staff */}
