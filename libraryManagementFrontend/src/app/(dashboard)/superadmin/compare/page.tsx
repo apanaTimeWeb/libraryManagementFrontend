@@ -47,7 +47,7 @@ export default function CompareBranchesPage() {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center bg-slate-50 p-6 rounded-lg border">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center bg-slate-50 p-4 sm:p-6 rounded-lg border">
                 <div className="space-y-2">
                     <label className="text-sm font-medium">Select Branch A</label>
                     <Select value={branch1Id} onValueChange={setBranch1Id}>

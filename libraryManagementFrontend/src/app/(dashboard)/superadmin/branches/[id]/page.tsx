@@ -119,13 +119,13 @@ export default function BranchDetailsPage({ params }: PageProps) {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Button variant="ghost" size="icon" onClick={() => router.push('/superadmin/branches')}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">{branch.name}</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{branch.name}</h1>
                         <p className="text-muted-foreground flex items-center gap-2 mt-1">
                             <MapPin className="h-4 w-4" />
                             {branch.city}
@@ -136,15 +136,15 @@ export default function BranchDetailsPage({ params }: PageProps) {
                     <Badge variant={branch.status === 'active' ? 'default' : 'secondary'} className="h-6">
                         {branch.status}
                     </Badge>
-                    <Button onClick={() => setShowEditModal(true)}>
-                        <Edit2 className="mr-2 h-4 w-4" /> Edit Branch
+                    <Button onClick={() => setShowEditModal(true)} size="sm" className="sm:size-default">
+                        <Edit2 className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">Edit Branch</span><span className="sm:hidden">Edit</span>
                     </Button>
                 </div>
             </div>
 
             {/* Tabs */}
             <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-6">
+                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="financials">Financials</TabsTrigger>
                     <TabsTrigger value="users">Users</TabsTrigger>
@@ -327,11 +327,11 @@ export default function BranchDetailsPage({ params }: PageProps) {
 
                 {/* Tab 2: Financials */}
                 <TabsContent value="financials" className="space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="text-sm text-muted-foreground">
                             {format(dateRange.from, 'MMM dd, yyyy')} - {format(dateRange.to, 'MMM dd, yyyy')}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <Button
                                 variant={filterType === 'week' ? 'default' : 'outline'}
                                 size="sm"
@@ -354,9 +354,12 @@ export default function BranchDetailsPage({ params }: PageProps) {
                                         className={cn('justify-start text-left font-normal')}
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {filterType === 'custom' 
-                                            ? `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
-                                            : 'Custom'}
+                                        <span className="hidden sm:inline">
+                                            {filterType === 'custom' 
+                                                ? `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
+                                                : 'Custom'}
+                                        </span>
+                                        <span className="sm:hidden">Custom</span>
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="end">

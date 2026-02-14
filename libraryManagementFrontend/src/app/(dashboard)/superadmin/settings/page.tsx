@@ -47,30 +47,30 @@ export default function SuperAdminSettingsPage() {
             )}
 
             <Tabs defaultValue="general" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
-                    <TabsTrigger value="general">
-                        <Settings className="h-4 w-4 mr-2" />
-                        General
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+                    <TabsTrigger value="general" className="text-xs sm:text-sm">
+                        <Settings className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">General</span>
                     </TabsTrigger>
-                    <TabsTrigger value="security">
-                        <Shield className="h-4 w-4 mr-2" />
-                        Security
+                    <TabsTrigger value="security" className="text-xs sm:text-sm">
+                        <Shield className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Security</span>
                     </TabsTrigger>
-                    <TabsTrigger value="billing">
-                        <CreditCard className="h-4 w-4 mr-2" />
-                        Billing
+                    <TabsTrigger value="billing" className="text-xs sm:text-sm">
+                        <CreditCard className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Billing</span>
                     </TabsTrigger>
-                    <TabsTrigger value="communication">
-                        <Mail className="h-4 w-4 mr-2" />
-                        Communication
+                    <TabsTrigger value="communication" className="text-xs sm:text-sm">
+                        <Mail className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Comm</span>
                     </TabsTrigger>
-                    <TabsTrigger value="backup">
-                        <Database className="h-4 w-4 mr-2" />
-                        Backup
+                    <TabsTrigger value="backup" className="text-xs sm:text-sm">
+                        <Database className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Backup</span>
                     </TabsTrigger>
-                    <TabsTrigger value="advanced">
-                        <Zap className="h-4 w-4 mr-2" />
-                        Advanced
+                    <TabsTrigger value="advanced" className="text-xs sm:text-sm">
+                        <Zap className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Advanced</span>
                     </TabsTrigger>
                 </TabsList>
 

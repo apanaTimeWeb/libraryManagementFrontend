@@ -103,17 +103,17 @@ export default function UserProfilePage({ params }: PageProps) {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.push('/superadmin/users')}>
+                    <Button variant="ghost" size="icon" onClick={() => router.push('/superadmin/users')} className="shrink-0">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <div className="flex items-center gap-4">
-                        <Avatar className="h-16 w-16">
-                            <AvatarFallback className="text-2xl">{user.name.charAt(0)}</AvatarFallback>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <Avatar className="h-12 w-12 sm:h-16 sm:w-16">
+                            <AvatarFallback className="text-xl sm:text-2xl">{user.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                            <h1 className="text-3xl font-bold tracking-tight">{user.name}</h1>
+                            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{user.name}</h1>
                             <div className="flex items-center gap-2 mt-1">
                                 <Badge className={getRoleBadgeColor(user.role)}>{user.role}</Badge>
                                 <Badge variant={user.isActive ? 'default' : 'secondary'}>
@@ -123,14 +123,14 @@ export default function UserProfilePage({ params }: PageProps) {
                         </div>
                     </div>
                 </div>
-                <Button>
-                    <Edit2 className="mr-2 h-4 w-4" /> Edit User
+                <Button size="sm" className="sm:size-default">
+                    <Edit2 className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">Edit User</span><span className="sm:hidden">Edit</span>
                 </Button>
             </div>
 
             {/* Tabs */}
             <Tabs defaultValue="profile" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
                     <TabsTrigger value="profile">Profile</TabsTrigger>
                     <TabsTrigger value="security">Security</TabsTrigger>
                     <TabsTrigger value="permissions">Permissions</TabsTrigger>

@@ -138,26 +138,26 @@ export default function SuperAdminDashboard() {
                     <CardTitle>Quick Actions</CardTitle>
                     <CardDescription>Frequently used administrative actions</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+                <CardContent className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
                     <Button variant="outline" className="justify-start" onClick={() => setShowCreateBranch(true)}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Create New Branch
+                        <span className="truncate">Create New Branch</span>
                     </Button>
                     <Button variant="outline" className="justify-start" onClick={() => setShowCreateUser(true)}>
                         <UserPlus className="mr-2 h-4 w-4" />
-                        Add New User
+                        <span className="truncate">Add New User</span>
                     </Button>
                     <Button variant="outline" className="justify-start" onClick={() => alert('System Announcement feature - Coming soon!')}>
                         <Bell className="mr-2 h-4 w-4" />
-                        Send Announcement
+                        <span className="truncate">Send Announcement</span>
                     </Button>
                     <Button variant="outline" className="justify-start" onClick={() => alert('System backup initiated successfully!')}>
                         <Database className="mr-2 h-4 w-4" />
-                        Run System Backup
+                        <span className="truncate">Run System Backup</span>
                     </Button>
                     <Button variant="outline" className="justify-start" onClick={() => router.push('/superadmin/logs')}>
                         <FileText className="mr-2 h-4 w-4" />
-                        View Audit Logs
+                        <span className="truncate">View Audit Logs</span>
                     </Button>
                 </CardContent>
             </Card>

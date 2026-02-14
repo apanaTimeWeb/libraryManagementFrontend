@@ -108,22 +108,22 @@ export default function FranchiseAnalyticsPage() {
                     <CardContent>
                         <div className="space-y-4">
                             {topBranches.map((branch, index) => (
-                                <div key={branch.id} className="flex items-center gap-4">
-                                    <div className={`flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
+                                <div key={branch.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
                                             index === 1 ? 'bg-gray-100 text-gray-700' :
                                                 index === 2 ? 'bg-orange-100 text-orange-700' :
                                                     'bg-blue-50 text-blue-600'
                                         }`}>
                                         #{index + 1}
                                     </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-semibold">{branch.name}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                                            <span className="font-semibold truncate">{branch.name}</span>
                                             <span className="text-sm font-medium text-green-600">
                                                 ₹{branch.totalRevenue.toLocaleString()}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
                                             <span>{branch.studentCount} students</span>
                                             <span>•</span>
                                             <span>{branch.occupancy}% occupancy</span>
@@ -149,15 +149,15 @@ export default function FranchiseAnalyticsPage() {
                     <CardContent>
                         <div className="space-y-4">
                             {bottomBranches.map((branch, index) => (
-                                <div key={branch.id} className="flex items-center gap-4 p-3 bg-orange-50 rounded-lg">
-                                    <div className="flex-1">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-semibold">{branch.name}</span>
+                                <div key={branch.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 bg-orange-50 rounded-lg">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                                            <span className="font-semibold truncate">{branch.name}</span>
                                             <span className="text-sm font-medium">
                                                 ₹{branch.totalRevenue.toLocaleString()}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
                                             <span>{branch.studentCount} students</span>
                                             <span>•</span>
                                             <span className={branch.occupancy < 60 ? 'text-red-600' : ''}>
@@ -185,7 +185,7 @@ export default function FranchiseAnalyticsPage() {
                     <CardDescription>Side-by-side comparison of all key metrics</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto -mx-6 px-6">
                         <Table>
                             <TableHeader>
                                 <TableRow>

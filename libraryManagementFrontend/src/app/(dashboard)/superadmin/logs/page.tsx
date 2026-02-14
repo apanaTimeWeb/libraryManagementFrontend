@@ -69,14 +69,14 @@ export default function SystemLogsPage() {
                     <CardContent>
                         <div className="space-y-2">
                             {criticalLogs.slice(0, 5).map(log => (
-                                <div key={log.id} className="flex items-center justify-between p-2 bg-white rounded-md">
-                                    <div>
-                                        <span className="font-medium">{getUserById(log.userId)?.name || 'Unknown User'}</span>
+                                <div key={log.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2 bg-white rounded-md">
+                                    <div className="flex-1 min-w-0">
+                                        <span className="font-medium break-words">{getUserById(log.userId)?.name || 'Unknown User'}</span>
                                         <span className="text-sm text-muted-foreground"> performed </span>
                                         <Badge className={getActionColor(log.action)}>{log.action}</Badge>
                                         <span className="text-sm text-muted-foreground"> on {log.entityType}</span>
                                     </div>
-                                    <span className="text-xs text-muted-foreground">
+                                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                                         {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
                                     </span>
                                 </div>
