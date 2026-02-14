@@ -23,7 +23,10 @@ interface DeactivateBranchModalProps {
 
 export function DeactivateBranchModal({ open, onOpenChange, branch, branches }: DeactivateBranchModalProps) {
   const { updateBranch, fetchBranches } = useBranchStore();
-  const activeBranches = branches.filter(b => b.id !== branch?.id && b.status === 'active');
+  const activeBranches = React.useMemo(
+    () => branches.filter(b => b.id !== branch?.id && b.status === 'active'),
+    [branches, branch?.id]
+  );
   
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<DeactivateBranchFormData>({
     resolver: zodResolver(deactivateBranchSchema),
@@ -59,7 +62,7 @@ export function DeactivateBranchModal({ open, onOpenChange, branch, branches }: 
         setValue('migrateStudentsTo', activeBranches[0].id);
       }
     }
-  }, [open, setValue, activeBranches]);
+  }, [open, setValue, activeBranches.length]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
