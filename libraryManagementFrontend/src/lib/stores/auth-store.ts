@@ -6,7 +6,7 @@ interface User {
   name: string;
   email: string;
   role: 'superadmin' | 'owner' | 'manager' | 'staff';
-  branchId?: string;
+  branchId?: string | null;
   permissions: string[];
 }
 
