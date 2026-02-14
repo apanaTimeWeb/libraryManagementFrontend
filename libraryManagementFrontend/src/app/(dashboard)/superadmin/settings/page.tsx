@@ -204,7 +204,7 @@ export default function SuperAdminSettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <Textarea
-                                placeholder="Enter IP addresses (one per line)&#10;192.168.1.1&#10;203.0.113.0/24"
+                                placeholder="Enter IP addresses (one per line)\n192.168.1.1\n203.0.113.0/24"
                                 rows={5}
                             />
                         </CardContent>
