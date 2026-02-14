@@ -17,6 +17,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { SeatHeatmap } from '@/components/charts/seat-heatmap';
 import { Sparkline } from '@/components/charts/sparkline';
 import { NewAdmissionModal } from '@/components/modals/new-admission-modal';
+import { EditBranchModal } from '@/components/modals/edit-branch-modal';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
 interface PageProps {
@@ -32,6 +33,7 @@ export default function BranchDetailsPage({ params }: PageProps) {
     const router = useRouter();
     const { user } = useAuthStore();
     const [showAdmissionModal, setShowAdmissionModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
@@ -113,7 +115,7 @@ export default function BranchDetailsPage({ params }: PageProps) {
                     <Badge variant={branch.status === 'active' ? 'default' : 'secondary'} className="h-6">
                         {branch.status}
                     </Badge>
-                    <Button>
+                    <Button onClick={() => setShowEditModal(true)}>
                         <Edit2 className="mr-2 h-4 w-4" /> Edit Branch
                     </Button>
                 </div>
@@ -668,6 +670,7 @@ export default function BranchDetailsPage({ params }: PageProps) {
             </Tabs>
 
             <NewAdmissionModal open={showAdmissionModal} onOpenChange={setShowAdmissionModal} />
+            <EditBranchModal open={showEditModal} onOpenChange={setShowEditModal} branch={branch} />
         </div>
     );
 }
