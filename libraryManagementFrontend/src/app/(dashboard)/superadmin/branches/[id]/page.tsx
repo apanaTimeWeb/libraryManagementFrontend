@@ -7,18 +7,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
-    ArrowLeft, Edit2, MapPin, Phone, Mail, Building2, Calendar,
+    ArrowLeft, Edit2, MapPin, Phone, Mail, Building2, Calendar, CalendarIcon,
     Users, TrendingUp, IndianRupee, Clock, Plus
 } from 'lucide-react';
 import { branches, getUserById, students, payments, users, auditLogs } from '@/lib/mockData';
-import { format } from 'date-fns';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
 import { SeatHeatmap } from '@/components/charts/seat-heatmap';
 import { Sparkline } from '@/components/charts/sparkline';
 import { NewAdmissionModal } from '@/components/modals/new-admission-modal';
 import { EditBranchModal } from '@/components/modals/edit-branch-modal';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { cn } from '@/lib/utils';
+
+type FilterType = 'week' | 'month' | 'custom';
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -35,6 +40,22 @@ export default function BranchDetailsPage({ params }: PageProps) {
     const [showAdmissionModal, setShowAdmissionModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
+    const [filterType, setFilterType] = useState<FilterType>('month');
+    const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+        from: startOfMonth(new Date()),
+        to: endOfMonth(new Date()),
+    });
+
+    const handleFilterChange = (type: FilterType) => {
+        setFilterType(type);
+        const now = new Date();
+        
+        if (type === 'week') {
+            setDateRange({ from: startOfWeek(now), to: endOfWeek(now) });
+        } else if (type === 'month') {
+            setDateRange({ from: startOfMonth(now), to: endOfMonth(now) });
+        }
+    };
 
     useEffect(() => {
         setIsMounted(true);
@@ -306,6 +327,54 @@ export default function BranchDetailsPage({ params }: PageProps) {
 
                 {/* Tab 2: Financials */}
                 <TabsContent value="financials" className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
+                            {format(dateRange.from, 'MMM dd, yyyy')} - {format(dateRange.to, 'MMM dd, yyyy')}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant={filterType === 'week' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => handleFilterChange('week')}
+                            >
+                                Week
+                            </Button>
+                            <Button
+                                variant={filterType === 'month' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => handleFilterChange('month')}
+                            >
+                                Month
+                            </Button>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant={filterType === 'custom' ? 'default' : 'outline'}
+                                        size="sm"
+                                        className={cn('justify-start text-left font-normal')}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {filterType === 'custom' 
+                                            ? `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd')}`
+                                            : 'Custom'}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="end">
+                                    <CalendarComponent
+                                        mode="range"
+                                        selected={{ from: dateRange.from, to: dateRange.to }}
+                                        onSelect={(range) => {
+                                            if (range?.from && range?.to) {
+                                                setFilterType('custom');
+                                                setDateRange({ from: range.from, to: range.to });
+                                            }
+                                        }}
+                                        numberOfMonths={2}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    </div>
                     <div className="grid gap-4 md:grid-cols-3">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
