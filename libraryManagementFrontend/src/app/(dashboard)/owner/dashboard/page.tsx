@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CreditCard, Users, Wallet, AlertTriangle, TrendingUp } from 'lucide-react';
-import { payments, students, settlements, waitlist, dailyRevenue, staffPerformance, seats, auditLogs } from '@/lib/mockData';
+import { payments, students, settlements, waitlist, dailyRevenue, staffPerformance, seats, auditLogs, criticalAuditLogs } from '@/lib/mockData';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { format, startOfMonth, isAfter } from 'date-fns';
@@ -36,10 +36,7 @@ export default function OwnerDashboardPage() {
     .filter(w => w.status === 'waiting')
     .reduce((sum, w) => sum + w.potentialRevenue, 0);
 
-  const criticalAudits = auditLogs
-    .filter(a => a.severity === 'critical' || a.severity === 'high')
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 3);
+  const criticalAudits = criticalAuditLogs.slice(0, 3);
 
   // Seat status counts
   const availableSeats = seats.filter(s => s.status === 'available').length;

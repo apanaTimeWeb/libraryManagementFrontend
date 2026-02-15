@@ -889,6 +889,164 @@ export const staffPerformance = users
         attendanceMarked: Math.floor(Math.random() * 500) + 100,
     }));
 
+// --- Mock Data: Lockers ---
+export interface Locker {
+  id: string;
+  branchId: string;
+  number: number;
+  status: 'free' | 'occupied' | 'maintenance';
+  studentId?: string;
+  expiryDate?: string;
+  monthlyFee: number;
+}
+
+export const lockers: Locker[] = Array.from({ length: 50 }, (_, i) => {
+  const isOccupied = Math.random() > 0.4;
+  const isMaintenance = !isOccupied && Math.random() > 0.9;
+  
+  return {
+    id: generateId('lck', i + 1),
+    branchId: branches[0].id,
+    number: i + 1,
+    status: isMaintenance ? 'maintenance' : (isOccupied ? 'occupied' : 'free'),
+    studentId: isOccupied ? students[i % students.length]?.id : undefined,
+    expiryDate: isOccupied ? addDays(new Date(), Math.floor(Math.random() * 30)).toISOString() : undefined,
+    monthlyFee: 200,
+  };
+});
+
+// --- Mock Data: Marketing ROI ---
+export interface MarketingSource {
+  id: string;
+  name: string;
+  type: 'walk_in' | 'google_ads' | 'facebook' | 'referral' | 'website';
+  leads: number;
+  conversions: number;
+  cost: number;
+  revenue: number;
+}
+
+export const marketingSources: MarketingSource[] = [
+  {
+    id: 'mkt-001',
+    name: 'Walk-in',
+    type: 'walk_in',
+    leads: 120,
+    conversions: 72,
+    cost: 0,
+    revenue: 86400,
+  },
+  {
+    id: 'mkt-002',
+    name: 'Google Ads',
+    type: 'google_ads',
+    leads: 80,
+    conversions: 24,
+    cost: 15000,
+    revenue: 28800,
+  },
+  {
+    id: 'mkt-003',
+    name: 'Facebook Ads',
+    type: 'facebook',
+    leads: 60,
+    conversions: 12,
+    cost: 8000,
+    revenue: 14400,
+  },
+  {
+    id: 'mkt-004',
+    name: 'Referrals',
+    type: 'referral',
+    leads: 40,
+    conversions: 20,
+    cost: 2000,
+    revenue: 24000,
+  },
+  {
+    id: 'mkt-005',
+    name: 'Website',
+    type: 'website',
+    leads: 50,
+    conversions: 15,
+    cost: 5000,
+    revenue: 18000,
+  },
+];
+
+// --- Mock Data: Staff Performance with Detailed Metrics ---
+export interface StaffPerformanceDetail {
+  userId: string;
+  name: string;
+  role: string;
+  leadsAssigned: number;
+  callsMade: number;
+  missedFollowups: number;
+  conversions: number;
+  revenueCollected: number;
+  conversionRate: number;
+}
+
+export const staffPerformanceDetails: StaffPerformanceDetail[] = users
+  .filter(u => u.role === 'manager' || u.role === 'staff')
+  .slice(0, 15)
+  .map((user, i) => {
+    const leadsAssigned = Math.floor(Math.random() * 50) + 20;
+    const callsMade = Math.floor(Math.random() * leadsAssigned) + 10;
+    const missedFollowups = Math.floor(Math.random() * 10);
+    const conversions = Math.floor(Math.random() * 20) + 5;
+    const revenueCollected = conversions * (Math.floor(Math.random() * 1000) + 800);
+    
+    return {
+      userId: user.id,
+      name: user.name,
+      role: user.role,
+      leadsAssigned,
+      callsMade,
+      missedFollowups,
+      conversions,
+      revenueCollected,
+      conversionRate: Math.round((conversions / leadsAssigned) * 100),
+    };
+  });
+
+// --- Mock Data: Enhanced Audit Logs with Critical Actions ---
+export const criticalAuditLogs = [
+  {
+    id: 'log-crit-001',
+    timestamp: subDays(new Date(), 1).toISOString(),
+    userId: 'usr-mgr-001',
+    userRole: 'manager' as const,
+    action: 'DELETE_PAYMENT' as const,
+    entityType: 'payment' as const,
+    entityId: 'pay-500',
+    changes: [
+      { field: 'amount', oldValue: 500, newValue: 0 },
+      { field: 'status', oldValue: 'paid', newValue: 'deleted' },
+    ],
+    ipAddress: '192.168.1.105',
+    device: 'Chrome/Windows',
+    severity: 'critical' as const,
+    details: 'Deleted ₹500 cash receipt',
+  },
+  {
+    id: 'log-crit-002',
+    timestamp: subDays(new Date(), 2).toISOString(),
+    userId: 'usr-mgr-002',
+    userRole: 'manager' as const,
+    action: 'MANUAL_DISCOUNT' as const,
+    entityType: 'payment' as const,
+    entityId: 'pay-501',
+    changes: [
+      { field: 'amount', oldValue: 1200, newValue: 900 },
+    ],
+    ipAddress: '192.168.1.106',
+    device: 'Chrome/Windows',
+    severity: 'high' as const,
+    details: 'Applied manual discount of ₹300',
+  },
+];
+
 // Helper to get user by id
 export const getUserById = (id: string) => users.find(u => u.id === id);
 export const getBranchById = (id: string) => branches.find(b => b.id === id);
