@@ -713,7 +713,184 @@ export const subscriptions: Subscription[] = students
         autoRenew: Math.random() > 0.3,
     }));
 
+// --- Mock Data: Expenses ---
+export interface Expense {
+    id: string;
+    branchId: string;
+    category: 'rent' | 'utilities' | 'salaries' | 'maintenance' | 'marketing' | 'other';
+    amount: number;
+    description?: string;
+    date: string;
+    vendorName?: string;
+    billNumber?: string;
+    gstAmount?: number;
+    paymentMode: 'cash' | 'bank_transfer' | 'cheque' | 'upi';
+    receiptUrl?: string;
+}
+
+export const expenses: Expense[] = Array.from({ length: 80 }, (_, i) => {
+    const branch = branches[i % branches.length];
+    const categories: Expense['category'][] = ['rent', 'utilities', 'salaries', 'maintenance', 'marketing', 'other'];
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    
+    return {
+        id: generateId('exp', i + 1),
+        branchId: branch.id,
+        category,
+        amount: category === 'rent' ? branch.monthlyRent || 50000 : Math.floor(Math.random() * 20000) + 1000,
+        description: `${category} expense for ${branch.name}`,
+        date: subDays(new Date(), Math.floor(Math.random() * 60)).toISOString(),
+        vendorName: `Vendor ${i % 10 + 1}`,
+        billNumber: `BILL-${i + 1000}`,
+        gstAmount: Math.floor(Math.random() * 2000),
+        paymentMode: (['cash', 'bank_transfer', 'cheque', 'upi'] as const)[Math.floor(Math.random() * 4)],
+        receiptUrl: `/receipts/exp-${i + 1}.pdf`,
+    };
+});
+
+// --- Mock Data: Daily Settlements ---
+export interface Settlement {
+    id: string;
+    branchId: string;
+    date: string;
+    settledBy: string;
+    systemCalculated: number;
+    actualCash: number;
+    variance: number;
+    status: 'balanced' | 'flagged' | 'reviewed';
+    evidenceUrl?: string;
+    notes?: string;
+}
+
+export const settlements: Settlement[] = Array.from({ length: 60 }, (_, i) => {
+    const branch = branches[i % branches.length];
+    const systemCalc = Math.floor(Math.random() * 15000) + 5000;
+    const variance = i % 10 === 0 ? -500 : (i % 15 === 0 ? 200 : 0);
+    const actualCash = systemCalc + variance;
+    
+    return {
+        id: generateId('set', i + 1),
+        branchId: branch.id,
+        date: subDays(new Date(), i).toISOString(),
+        settledBy: users.find(u => u.branchId === branch.id && u.role === 'manager')?.id || users[0].id,
+        systemCalculated: systemCalc,
+        actualCash,
+        variance,
+        status: variance < 0 ? 'flagged' : (variance > 0 ? 'reviewed' : 'balanced'),
+        evidenceUrl: `/settlements/slip-${i + 1}.jpg`,
+        notes: variance !== 0 ? `Variance of ₹${Math.abs(variance)}` : 'All balanced',
+    };
+});
+
+// --- Mock Data: Waitlist ---
+export interface WaitlistEntry {
+    id: string;
+    branchId: string;
+    name: string;
+    phone: string;
+    preferredShift: ShiftType;
+    joinedDate: string;
+    status: 'waiting' | 'notified' | 'converted';
+    potentialRevenue: number;
+    priority: number;
+    maxWaitDays?: number;
+    notificationPreference?: string[];
+    notes?: string;
+}
+
+export const waitlist: WaitlistEntry[] = Array.from({ length: 25 }, (_, i) => {
+    const branch = branches[i % branches.length];
+    
+    return {
+        id: generateId('wait', i + 1),
+        branchId: branch.id,
+        name: `Waitlist Person ${i + 1}`,
+        phone: `+91${9800000000 + i}`,
+        preferredShift: (['morning', 'evening', 'hybrid'] as const)[Math.floor(Math.random() * 3)],
+        joinedDate: subDays(new Date(), Math.floor(Math.random() * 30)).toISOString(),
+        status: (['waiting', 'notified', 'converted'] as const)[Math.floor(Math.random() * 3)],
+        potentialRevenue: [800, 1200, 3200][Math.floor(Math.random() * 3)],
+        priority: i + 1,
+        maxWaitDays: 30,
+        notificationPreference: ['whatsapp', 'sms'],
+        notes: `Interested in ${['morning', 'evening'][Math.floor(Math.random() * 2)]} shift`,
+    };
+});
+
+// --- Mock Data: Blacklist ---
+export interface BlacklistEntry {
+    id: string;
+    branchId?: string;
+    phone: string;
+    name: string;
+    reason: string;
+    severity: 'low' | 'medium' | 'high';
+    addedBy: string;
+    date: string;
+    evidenceUrls?: string[];
+}
+
+export const blacklist: BlacklistEntry[] = Array.from({ length: 15 }, (_, i) => {
+    const branch = i < 10 ? branches[i % branches.length] : undefined;
+    
+    return {
+        id: generateId('blk', i + 1),
+        branchId: branch?.id,
+        phone: `+91${9700000000 + i}`,
+        name: `Blacklisted Person ${i + 1}`,
+        reason: ['Payment fraud', 'Disruptive behavior', 'Theft', 'Repeated violations'][i % 4],
+        severity: (['low', 'medium', 'high'] as const)[Math.floor(Math.random() * 3)],
+        addedBy: users.find(u => u.role === 'manager')?.id || users[0].id,
+        date: subDays(new Date(), Math.floor(Math.random() * 180)).toISOString(),
+        evidenceUrls: [`/evidence/blk-${i + 1}.jpg`],
+    };
+});
+
+// --- Mock Data: Alumni ---
+export interface AlumniEntry {
+    id: string;
+    studentId: string;
+    branchId: string;
+    exitDate: string;
+    reason: string;
+    forwardAddress?: string;
+}
+
+export const alumni: AlumniEntry[] = students
+    .filter(s => s.status === 'inactive')
+    .slice(0, 30)
+    .map((student, i) => ({
+        id: generateId('alm', i + 1),
+        studentId: student.id,
+        branchId: student.branchId,
+        exitDate: subDays(new Date(), Math.floor(Math.random() * 365)).toISOString(),
+        reason: ['Completed studies', 'Relocated', 'Financial issues', 'Dissatisfied'][i % 4],
+        forwardAddress: i % 3 === 0 ? `New address ${i + 1}` : undefined,
+    }));
+
+// --- Mock Data: Daily Revenue (for charts) ---
+export const dailyRevenue = Array.from({ length: 30 }, (_, i) => ({
+    date: format(subDays(new Date(), 29 - i), 'yyyy-MM-dd'),
+    amount: Math.floor(Math.random() * 15000) + 5000,
+    cash: Math.floor(Math.random() * 5000) + 2000,
+    upi: Math.floor(Math.random() * 6000) + 2000,
+    card: Math.floor(Math.random() * 4000) + 1000,
+}));
+
+// --- Mock Data: Staff Performance ---
+export const staffPerformance = users
+    .filter(u => u.role === 'manager' || u.role === 'staff')
+    .slice(0, 10)
+    .map((user, i) => ({
+        userId: user.id,
+        name: user.name,
+        revenue: Math.floor(Math.random() * 100000) + 20000,
+        conversions: Math.floor(Math.random() * 20) + 5,
+        attendanceMarked: Math.floor(Math.random() * 500) + 100,
+    }));
+
 // Helper to get user by id
 export const getUserById = (id: string) => users.find(u => u.id === id);
 export const getBranchById = (id: string) => branches.find(b => b.id === id);
 export const getStudentById = (id: string) => students.find(s => s.id === id);
+export const getPlanById = (id: string) => plans.find(p => p.id === id);

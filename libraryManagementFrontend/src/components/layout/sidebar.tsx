@@ -61,6 +61,61 @@ const SUPERADMIN_NAV: NavGroup[] = [
     }
 ];
 
+const OWNER_NAV: NavGroup[] = [
+    {
+        group: "Dashboard",
+        items: [{ icon: Home, label: "Overview", href: "/owner/dashboard" }]
+    },
+    {
+        group: "Settings",
+        icon: Settings,
+        items: [
+            { label: "Branch Settings", href: "/owner/settings/branch" },
+            { label: "Plan Manager", href: "/owner/settings/plans" },
+            { label: "Coupon Manager", href: "/owner/settings/coupons" },
+            { label: "User Management", href: "/owner/settings/users" }
+        ]
+    },
+    {
+        group: "Finance",
+        icon: CreditCard,
+        items: [
+            { label: "Expenses", href: "/owner/finance/expenses" },
+            { label: "Daily Settlements", href: "/owner/finance/settlements" },
+            { label: "Reports", href: "/owner/finance/reports" }
+        ]
+    },
+    {
+        group: "Admin Tools",
+        icon: Cog,
+        items: [
+            { label: "Assets & Maintenance", href: "/owner/admin/assets" },
+            { label: "ID Card Generator", href: "/owner/admin/id-cards" },
+            { label: "Bulk Import", href: "/owner/admin/import" },
+            { label: "Audit Logs", href: "/owner/admin/audit" }
+        ]
+    },
+    {
+        group: "Members",
+        icon: UserCircle,
+        items: [
+            { label: "Student Directory", href: "/owner/members/directory" },
+            { label: "Family Management", href: "/owner/members/families" },
+            { label: "Waitlist", href: "/owner/members/waitlist" },
+            { label: "Blacklist", href: "/owner/members/blacklist" },
+            { label: "Alumni", href: "/owner/members/alumni" }
+        ]
+    },
+    {
+        group: "Communication",
+        icon: MessageSquare,
+        items: [
+            { label: "Notices", href: "/owner/communication/notices" },
+            { label: "Complaints", href: "/owner/communication/complaints", badge: 3 }
+        ]
+    }
+];
+
 const STAFF_NAV: NavGroup[] = [
     {
         group: "Dashboard",
@@ -159,10 +214,12 @@ export function Sidebar() {
     // Construct Nav
     const navItems: NavGroup[] = isSuperAdmin
         ? SUPERADMIN_NAV
+        : isOwner
+        ? OWNER_NAV
         : STAFF_NAV.map(group => ({ ...group, items: [...group.items] }));
 
-    if (!isSuperAdmin) {
-        if (isManager || isOwner) {
+    if (!isSuperAdmin && !isOwner) {
+        if (isManager) {
             // Amend Finance
             const financeGroup = navItems.find(g => g.group === 'Finance');
             if (financeGroup) financeGroup.items = MANAGER_AMENDMENTS.Finance;
@@ -177,7 +234,7 @@ export function Sidebar() {
             }
 
             // Add Settings
-            const settingsItems = isOwner ? OWNER_AMENDMENTS.Settings : (isManager ? MANAGER_AMENDMENTS.Settings : []);
+            const settingsItems = isManager ? MANAGER_AMENDMENTS.Settings : [];
             if (settingsItems.length > 0) {
                 if (!navItems.find(g => g.group === 'Settings')) {
                     navItems.push({
