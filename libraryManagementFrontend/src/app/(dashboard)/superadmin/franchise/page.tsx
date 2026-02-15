@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, TrendingUp, Building2, BarChart3, Map } from 'lucide-react';
@@ -16,7 +17,7 @@ import { IndiaMap } from '@/components/charts/india-map';
 
 export default function FranchiseAnalyticsPage() {
     // Calculate metrics for each branch
-    const branchMetrics = branches.map(branch => {
+    const branchMetrics = useMemo(() => branches.map(branch => {
         const branchStudents = students.filter(s => s.branchId === branch.id && s.status === 'active');
         const branchPayments = payments.filter(p => p.branchId === branch.id && p.status === 'paid');
         const totalRevenue = branchPayments.reduce((sum, p) => sum + p.amount, 0);
@@ -28,7 +29,7 @@ export default function FranchiseAnalyticsPage() {
             avgRevenuePerStudent: branchStudents.length > 0 ? totalRevenue / branchStudents.length : 0,
             growth: Math.floor(Math.random() * 30) - 10, // Mock growth data
         };
-    }).sort((a, b) => b.totalRevenue - a.totalRevenue);
+    }).sort((a, b) => b.totalRevenue - a.totalRevenue), []);
 
     const topBranches = branchMetrics.slice(0, 5);
     const bottomBranches = branchMetrics.slice(-3);

@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowUpDown, MoreHorizontal, Edit, Eye, Trash2, Key, Download, Power } from 'lucide-react';
 import type { User } from '@/lib/types';
 import { globalTextFilter } from '@/lib/table-utils';
+import { BulkActionsToolbar } from './bulk-actions-toolbar';
 
 export type UserTableRow = User & { branchName?: string };
 
@@ -33,9 +34,12 @@ interface UserTableProps {
   onView?: (user: UserTableRow) => void;
   onDelete?: (user: UserTableRow) => void;
   onResetPassword?: (user: UserTableRow) => void;
+  onBulkActivate?: (users: UserTableRow[]) => Promise<void>;
+  onBulkDeactivate?: (users: UserTableRow[]) => Promise<void>;
+  onBulkDelete?: (users: UserTableRow[]) => Promise<void>;
 }
 
-export function UserTable({ data, onEdit, onView, onDelete, onResetPassword }: UserTableProps) {
+export function UserTable({ data, onEdit, onView, onDelete, onResetPassword, onBulkActivate, onBulkDeactivate, onBulkDelete }: UserTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -211,43 +215,34 @@ export function UserTable({ data, onEdit, onView, onDelete, onResetPassword }: U
       </div>
 
       {selectedRows.length > 0 && (
-        <div className="flex items-center justify-between rounded-md bg-muted px-4 py-3">
-          <p className="text-sm font-medium">{selectedRows.length} user(s) selected</p>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => table.resetRowSelection()}>
-              <Power className="mr-2 h-4 w-4" /> Clear Selection
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const csv = [
-                  ['Name', 'Email', 'Phone', 'Role', 'Status', 'Last Login'].join(','),
-                  ...selectedRows.map((row) => {
-                    const user = row.original;
-                    return [
-                      user.name,
-                      user.email,
-                      user.phone,
-                      user.role,
-                      user.isActive ? 'Active' : 'Inactive',
-                      user.lastLogin || 'Never',
-                    ].join(',');
-                  }),
-                ].join('\n');
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `users_${new Date().toISOString().split('T')[0]}.csv`;
-                a.click();
-                table.resetRowSelection();
-              }}
-            >
-              <Download className="mr-2 h-4 w-4" /> Export
-            </Button>
-          </div>
-        </div>
+        <BulkActionsToolbar
+          selectedCount={selectedRows.length}
+          selectedRows={selectedRows.map(r => r.original)}
+          onClearSelection={() => table.resetRowSelection()}
+          onExport={(rows) => {
+            const csv = [
+              ['Name', 'Email', 'Phone', 'Role', 'Status', 'Last Login'].join(','),
+              ...rows.map((user) => [
+                user.name,
+                user.email,
+                user.phone,
+                user.role,
+                user.isActive ? 'Active' : 'Inactive',
+                user.lastLogin || 'Never',
+              ].join(',')),
+            ].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `users_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+          }}
+          onBulkActivate={onBulkActivate}
+          onBulkDeactivate={onBulkDeactivate}
+          onBulkDelete={onBulkDelete}
+          entityName="user"
+        />
       )}
 
       <div className="rounded-md border">

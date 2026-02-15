@@ -226,6 +226,69 @@ export interface Subscription {
     autoRenew: boolean;
 }
 
+export interface Expense {
+    id: string;
+    branchId: string;
+    category: 'rent' | 'utilities' | 'salaries' | 'maintenance' | 'marketing' | 'other';
+    amount: number;
+    description?: string;
+    date: string;
+    vendorName?: string;
+    billNumber?: string;
+    gstAmount?: number;
+    paymentMode: 'cash' | 'bank_transfer' | 'cheque' | 'upi';
+    receiptUrl?: string;
+}
+
+export interface Settlement {
+    id: string;
+    branchId: string;
+    date: string;
+    settledBy: string;
+    systemCalculated: number;
+    actualCash: number;
+    variance: number;
+    status: 'balanced' | 'flagged' | 'reviewed';
+    evidenceUrl?: string;
+    notes?: string;
+}
+
+export interface WaitlistEntry {
+    id: string;
+    branchId: string;
+    name: string;
+    phone: string;
+    preferredShift: ShiftType;
+    joinedDate: string;
+    status: 'waiting' | 'notified' | 'converted';
+    potentialRevenue: number;
+    priority: number;
+    maxWaitDays?: number;
+    notificationPreference?: string[];
+    notes?: string;
+}
+
+export interface BlacklistEntry {
+    id: string;
+    branchId?: string;
+    phone: string;
+    name: string;
+    reason: string;
+    severity: 'low' | 'medium' | 'high';
+    addedBy: string;
+    date: string;
+    evidenceUrls?: string[];
+}
+
+export interface AlumniEntry {
+    id: string;
+    studentId: string;
+    branchId: string;
+    exitDate: string;
+    reason: string;
+    forwardAddress?: string;
+}
+
 export interface Stats {
     totalBranches: number;
     totalUsers: number;
