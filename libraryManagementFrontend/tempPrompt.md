@@ -1,585 +1,775 @@
-Implementation Plan: Complete SuperAdmin Features
-Goal
-Implement all missing SuperAdmin features identified in the audit to achieve 100% specification compliance for Smart Library 360.
+# 👑 SMART LIBRARY 360 – OWNER DASHBOARD MASTER PROMPT
 
-Current State: ~70% complete
-Target State: 100% production-ready SuperAdmin dashboard
-Estimated Total Effort: 20-25 working days
+**Copy this entire prompt into Bolt.new, Lovable, Stitch, or v0** to generate a complete, production‑ready frontend for the **Owner** role. This prompt includes **every feature**, **every page**, **every modal**, and **every component** with **hardcoded mock data** so you can test live immediately. No backend required – all data is simulated.
 
-Phase 1: Core Infrastructure (CRITICAL) 🔴
-Priority: Must-have for data integrity and scalability
-Estimated Effort: 5-6 days
+---
 
-1.1 Form Validation Framework
-Create Zod Schemas
-Files to create:
+## 📋 PROJECT OVERVIEW
 
-src/lib/validation/branch.ts - Branch creation/edit schema
-src/lib/validation/user.ts - User creation/edit schema
-src/lib/validation/settings.ts - Settings schemas (6 tabs)
-src/lib/validation/common.ts - Shared validators (phone, email, GST, PAN)
-Implementation:
+**Project Name**: Smart Library 360 – Owner Dashboard  
+**Role**: **Owner** (full control over one branch)  
+**Target Audience**: Library owners managing a single location.  
+**Purpose**: Monitor revenue, staff integrity, operational efficiency, and manage branch settings.
 
-Branch schema: name, city, address, pincode, phone, email, GST, PAN, capacity, rent, shifts
-User schema: name, email, phone, password, role, permissions, branchId
-Settings schemas: general, security, billing, communication, backup, advanced
-Common validators: phone regex, email, GST (15 chars), PAN (10 chars), pincode (6 digits)
-Refactor Modals to React Hook Form
-Files to modify:
+**Owner Permissions** (from backend Service 1):
+- ✅ Full access to their branch data
+- ✅ View all financials (revenue, expenses, P&L, daily settlements)
+- ✅ Create/update subscription plans and coupons
+- ✅ Create/update **Managers** and **Staff** (users)
+- ✅ Access all operational data (students, seats, attendance – read‑only)
+- ✅ View reports and analytics
+- ✅ Manage branch settings (shifts, fees, rules)
+- ✅ Bulk import, ID card generation, asset management
+- ✅ View audit logs (for fraud detection)
+- ❌ **Cannot** assign seats (Manager does this)
+- ❌ **Cannot** mark daily attendance (Staff/Manager do this)
+- ❌ **Cannot** create other Owners (only SuperAdmin)
+- ❌ **Cannot** delete branch (only SuperAdmin)
 
-src/components/modals/create-branch-modal.tsx
-src/components/modals/create-user-modal.tsx
-Changes:
+**Design System**:
+- **Colors**: Slate (900‑50), Indigo (600,500,400,300,100), White.  
+  Status: `green` (success/available), `red` (danger/occupied), `orange` (warning/maintenance), `yellow` (expiring), `blue` (info), `red-600` (critical/fraud), `emerald-600` (profit/safe)
+- **Typography**: Inter (system fallback)
+- **Spacing**: 4px base (Tailwind spacing)
+- **Border radius**: `6px` (medium), `8px` (cards)
+- **Shadows**: `shadow-sm`, `shadow-md`
+- **Components**: Shadcn UI (latest) + custom enterprise components
+- **Icons**: Lucide React (sizes 16,20,24)
+- **Tables**: TanStack Table v8 (sorting, filtering, pagination)
+- **Charts**: Recharts (line, bar, pie, area)
+- **Forms**: React Hook Form + Zod
+- **Date handling**: date‑fns
+- **Notifications**: Sonner toasts
+- **Dialogs**: Shadcn Dialog
 
-Replace useState form data with useForm() from react-hook-form
-Add zodResolver with respective schema
-Add field-level error messages using errors object
-Implement proper form submission with validation
-Add loading states during submission
-1.2 State Management
-Setup Zustand Stores
-Files to create:
+**Tech Stack** (mandatory):
+```
+Next.js 14 (App Router)
+React 18 + TypeScript
+Tailwind CSS 3.4 + @tailwindcss/forms
+Shadcn UI (latest)
+TanStack Table v8
+Recharts
+React Hook Form + Zod
+Lucide React
+Axios (for future API integration, but use mock data now)
+Socket.io‑client (simulated with setInterval)
+date‑fns
+```
 
-src/lib/stores/auth-store.ts - Authentication state
-src/lib/stores/branch-store.ts - Branch data & filters
-src/lib/stores/user-store.ts - User data & filters
-src/lib/stores/notification-store.ts - Real-time notifications
-src/lib/stores/ui-store.ts - Modal visibility, sidebar collapse
-Store Structure:
+---
 
-typescript
-// Example: branchStore
-interface BranchStore {
-  branches: Branch[];
-  filters: { status?: string; city?: string; manager?: string; dateRange?: [Date, Date] };
-  fetchBranches: () => Promise<void>;
-  createBranch: (data: BranchFormData) => Promise<void>;
-  updateBranch: (id: string, data: Partial<Branch>) => Promise<void>;
-  deleteBranch: (id: string) => Promise<void>;
-  setFilters: (filters: Partial<BranchStore['filters']>) => void;
-}
-Setup React Query
-Files to create:
+## 🧱 MOCK DATA STORE (`lib/mockData.ts`)
 
-src/lib/api/query-client.ts - Configured QueryClient
-src/components/providers/query-provider.tsx - React Query Provider
-Configuration:
+Create a TypeScript file exporting all mock data. This data must be **realistic and comprehensive** to power every screen. Use arrays with at least 5‑10 items each, but for tables (students, payments) generate 50+ items using loops.
 
-Default stale time: 5 minutes
-Retry: 2 attempts
-Refetch on window focus: enabled
-Cache time: 10 minutes
-1.3 TanStack Table Integration
-Files to create:
+```typescript
+// lib/mockData.ts
+import { subDays, format } from 'date-fns';
 
-src/components/tables/branch-table.tsx - Full-featured branch table
-src/components/tables/user-table.tsx - Full-featured user table
-src/components/tables/audit-log-table.tsx - Virtualized audit table
-src/lib/table-utils.ts - Common table utilities (fuzzy filter, column helpers)
-Features to implement:
+// Helper to generate dates
+const today = new Date();
+const yesterday = subDays(today, 1);
+const lastWeek = subDays(today, 7);
 
-✅ Column sorting (asc/desc)
-✅ Global search with fuzzy matching
-✅ Column filters (status, city, role, etc.)
-✅ Multi-select with checkboxes
-✅ Pagination (10/25/50/100 per page)
-✅ Row actions menu (Edit, View, Delete, Activate/Deactivate)
-✅ Bulk action toolbar (when rows selected)
-✅ Virtualization for audit logs (2000+ rows)
-Files to modify:
-
-src/app/(dashboard)/superadmin/branches/page.tsx
- - Replace basic table
-src/app/(dashboard)/superadmin/users/page.tsx
- - Replace basic table
-src/app/(dashboard)/superadmin/logs/page.tsx
- - Replace basic table
-Phase 2: Missing Pages & Modals (HIGH PRIORITY) 🟠
-Priority: Critical for core CRUD functionality
-Estimated Effort: 6-7 days
-
-2.1 Branch Details Page
-File to create:
-
-src/app/(dashboard)/superadmin/branches/[id]/page.tsx
-Tabs to implement (6 tabs):
-
-Tab 1: Overview
-Branch info card (name, address, GST, PAN, phone, email)
-Manager card (avatar, name, contact, performance score)
-Quick stats (capacity, occupancy, revenue, active students)
-Recent activity timeline (last 10 events from audit logs)
-Edit button → opens Edit Branch modal
-Tab 2: Financials
-Revenue chart (last 12 months bar chart)
-Collection summary (total, pending, overdue)
-Payment table (recent 50 transactions with filters)
-Expense tracking (if implemented)
-Export financials button
-Tab 3: Users (Staff)
-Staff list table (manager + staff assigned to this branch)
-Add staff button
-Role distribution pie chart
-Staff performance metrics
-Tab 4: Students
-Student list table (filtered by this branch)
-Active/Inactive/Expired counts
-Shift distribution chart
-Admission trends (last 6 months line chart)
-Tab 5: Settings
-Operating hours (morning/evening shifts with edit)
-Capacity management (total, AC, non-AC seats)
-Holiday calendar
-Branch-specific rules (late fees, security deposit)
-Deactivate branch button (confirmation modal)
-Tab 6: Analytics
-Occupancy trend (last 12 months area chart)
-Revenue vs target (gauge chart)
-Student retention rate
-Comparison with network average
-Top performing time slots
-2.2 User Profile Page
-File to create:
-
-src/app/(dashboard)/superadmin/users/[id]/page.tsx
-Tabs to implement (4 tabs):
-
-Tab 1: Profile
-User info card (avatar, name, email, phone, role badge)
-Assigned branch (if not SA)
-Join date, last login, status
-Activity stats (logins this month, actions performed)
-Edit button → Edit User modal
-Tab 2: Security
-Password last changed date
-Reset password button → Reset Password modal
-Session history table (last 20 logins with IP, device, location)
-2FA status (enabled/disabled toggle)
-Active sessions (with logout button)
-Tab 3: Permissions
-Permission matrix (checkboxes for all permissions)
-Role-based default permissions (read-only display)
-Custom permissions (editable)
-Save permissions button
-Audit log of permission changes
-Tab 4: Branches (for Owners/Managers)
-List of assigned branches (if owner with multiple)
-Performance per branch (revenue, students, occupancy)
-Switch primary branch dropdown
-For SA: shows "Global Access - All Branches"
-2.3 Edit Modals
-Edit Branch Modal
-File to create:
-
-src/components/modals/edit-branch-modal.tsx
-Implementation:
-
-Same 5-step wizard as Create, but pre-filled with existing data
-Load branch data from store/API
-Show "Updating..." state during save
-Optimistic UI update
-Toast notification on success/error
-Edit User Modal
-File to create:
-
-src/components/modals/edit-user-modal.tsx
-Implementation:
-
-Same 4-step wizard as Create, pre-filled
-Password fields optional (only if changing password)
-Can't change own role (validation)
-Can't remove last SuperAdmin (validation)
-2.4 Additional Modals
-Deactivate Branch Confirmation
-File to create:
-
-src/components/modals/deactivate-branch-modal.tsx
-Fields:
-
-Confirmation message: "Are you sure? This will affect X active students"
-Reason dropdown (Closed, Relocated, Poor Performance, Other)
-Reason notes (textarea)
-"Soft delete" vs "Archive" options
-Student migration plan (move to which branch?)
-Reset Password Modal
-File to create:
-
-src/components/modals/reset-password-modal.tsx
-Options:
-
-Auto-generate password (checkbox)
-Manual password input with strength meter
-Send email notification (checkbox)
-Force change on next login (checkbox)
-Send Announcement Modal
-File to create:
-
-src/components/modals/send-announcement-modal.tsx
-Fields:
-
-Title, message (textarea with markdown support)
-Target audience (All, Specific branch, Role, Custom)
-Channel (Email, SMS, WhatsApp, In-app notification)
-Schedule (Immediate or date/time picker)
-Preview button
-Phase 3: Advanced Features (MEDIUM PRIORITY) 🟡
-Priority: Polish and monitoring features
-Estimated Effort: 6-8 days
-
-3.1 Bulk Operations
-Files to modify:
-
-src/components/tables/branch-table.tsx
-src/components/tables/user-table.tsx
-Features:
-
-Multi-select checkboxes (select all, select page, deselect)
-Bulk action toolbar appears when rows selected
-Actions: Activate, Deactivate, Export, Assign Manager, Delete (with confirmation)
-Progress modal for batch operations (e.g., "Activating 5 of 12 branches...")
-Error handling (partial success display)
-3.2 Real-time Features (Socket.io)
-Socket.io Client Setup
-File to create:
-
-src/lib/socket/client.ts
-Implementation:
-
-typescript
-import { io, Socket } from 'socket.io-client';
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000';
-export const socket: Socket = io(SOCKET_URL, {
-  autoConnect: false,
-  auth: {
-    token: () => localStorage.getItem('accessToken'),
+// Branch (single, owner's branch)
+export const mockBranch = {
+  id: "branch-1",
+  name: "Smart Library - Connaught Place",
+  address: "1st Floor, Connaught Place, New Delhi - 110001",
+  gstNumber: "07AAACH7409R1ZN",
+  panNumber: "AAACH7409R",
+  contactNumber: "+911123456789",
+  email: "cp@smartlibrary360.com",
+  capacity: 100,
+  shifts: {
+    morning: { start: "06:00", end: "12:00" },
+    evening: { start: "12:00", end: "22:00" }
   },
-});
-// Event listeners
-socket.on('audit:new', (log) => {
-  // Add to audit log table
-  // Show toast notification
-});
-socket.on('system:alert', (alert) => {
-  // Add to notification store
-  // Show critical alert banner
-});
-socket.on('branch:updated', (branch) => {
-  // Update branch in store
-  // Invalidate React Query cache
-});
-Files to modify:
-
-src/app/(dashboard)/layout.tsx
- - Connect socket on mount
-src/app/(dashboard)/superadmin/logs/page.tsx
- - Listen to audit:new
-src/components/layout/topbar.tsx
- - Real-time notification badge
-Notification System
-File to create:
-
-src/components/notifications/notification-dropdown.tsx
-Features:
-
-Badge with unread count
-Dropdown list (last 20 notifications)
-Mark as read/unread
-Notification types: Info, Warning, Critical
-Click → navigate to related page
-"View All" → /superadmin/notifications
-3.3 Advanced Visualizations
-Geographical Map (India)
-File to create:
-
-src/components/visualizations/india-map.tsx
-Library: react-simple-maps + India TopoJSON
-
-Implementation:
-
-India map with state boundaries
-Markers for each branch (circle size = revenue)
-Hover tooltip (branch name, city, revenue, students)
-Click marker → navigate to branch details
-Color states by density (green = 3+ branches, yellow = 1-2, gray = 0)
-File to modify:
-
-src/app/(dashboard)/superadmin/franchise/page.tsx
- - Replace grid view
-Trend Charts
-Files to create:
-
-src/components/charts/revenue-trend-chart.tsx - Multi-line (per branch)
-src/components/charts/student-trend-chart.tsx - Area chart (admissions over time)
-src/components/charts/occupancy-heatmap.tsx - Calendar heatmap (daily occupancy %)
-File to modify:
-
-src/app/(dashboard)/superadmin/franchise/page.tsx
- - Add trend section
-Sparklines in Tables
-Implementation:
-
-Add mini revenue trend chart in Branch comparison table
-7-day occupancy sparkline per row
-Use Recharts <LineChart> with minimal config
-3.4 Diff Viewer for Audit Logs
-File to create:
-
-src/components/modals/audit-diff-modal.tsx
-Implementation:
-
-Parse changes array from audit log: [{ field, oldValue, newValue }]
-Display side-by-side or unified diff view
-Color coding: red (removed), green (added), yellow (modified)
-Syntax highlighting for JSON objects
-Copy diff to clipboard button
-Library: Consider react-diff-viewer-continued or custom implementation
-
-File to modify:
-
-src/app/(dashboard)/superadmin/logs/page.tsx
- - Add "View Changes" button
-Phase 4: Final Polish & Integration (LOW PRIORITY) 🟢
-Priority: Completeness and production readiness
-Estimated Effort: 3-4 days
-
-4.1 Mock Data Enhancement
-File to modify:
-
-src/lib/mockData.ts
-Changes:
-
-Increase students: 250 → 500
-Increase payments: 150 → 1000
-Increase audit logs: 100 → 2000
-Add more variety in data (edge cases, outliers)
-File to create:
-
-src/lib/mockData/generator.ts - Utility to generate large datasets
-4.2 Mock API Service
-File to create:
-
-src/lib/api/mock-service.ts
-Features:
-
-Simulated network delay (200-500ms)
-Pagination helper (slice data based on page/limit)
-Filtering logic (match query params)
-Sorting logic (by field + direction)
-Error simulation (5% random failure for testing)
-Example:
-
-typescript
-export async function fetchBranches(params: {
-  page: number;
-  limit: number;
-  status?: string;
-  city?: string;
-  search?: string;
-}) {
-  await delay(300); // Simulate network
-  let filtered = branches;
-  
-  if (params.status) filtered = filtered.filter(b => b.status === params.status);
-  if (params.city) filtered = filtered.filter(b => b.city === params.city);
-  if (params.search) filtered = filtered.filter(b => 
-    b.name.toLowerCase().includes(params.search.toLowerCase())
-  );
-  
-  const total = filtered.length;
-  const start = (params.page - 1) * params.limit;
-  const data = filtered.slice(start, start + params.limit);
-  
-  return { data, total, page: params.page, limit: params.limit };
-}
-4.3 API Integration Layer
-Files to create:
-
-src/lib/api/axios-instance.ts - Configured Axios client
-src/lib/api/branches.ts - Branch API calls
-src/lib/api/users.ts - User API calls
-src/lib/api/audit.ts - Audit log API calls
-Axios Instance Setup:
-
-typescript
-import axios from 'axios';
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
-  timeout: 10000,
-});
-// Request interceptor: Add JWT token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-// Response interceptor: Handle 401
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Clear auth and redirect to login
-      localStorage.removeItem('accessToken');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
+  securityDeposit: 500,
+  lateFeePerDay: 50,
+  gracePeriodDays: 5,
+  lockerMonthlyFee: 200,
+  absenteeAlertDays: 3,
+  monthlyBudget: {
+    rent: 45000,
+    utilities: 15000,
+    salaries: 35000,
+    maintenance: 10000,
+    marketing: 8000
   }
-);
-4.4 Settings Backend Integration
-File to modify:
+};
 
-src/app/(dashboard)/superadmin/settings/page.tsx
-Changes:
+// Plans
+export const mockPlans = [
+  { id: "plan-1", name: "Monthly Basic", durationDays: 30, price: 800, features: ["AC", "WiFi"], planType: "basic", studentsCount: 45, isActive: true },
+  { id: "plan-2", name: "Monthly Premium", durationDays: 30, price: 1200, features: ["AC", "Locker", "WiFi", "Printing"], planType: "premium", studentsCount: 78, isActive: true },
+  { id: "plan-3", name: "Quarterly Premium", durationDays: 90, price: 3200, features: ["AC", "Locker", "WiFi", "Printing"], planType: "premium", studentsCount: 32, isActive: true },
+  { id: "plan-4", name: "Yearly Basic", durationDays: 365, price: 8000, features: ["AC", "WiFi"], planType: "basic", studentsCount: 12, isActive: false },
+];
 
-Load settings from API on mount
-Save each tab to API (separate endpoints or single 
-/settings
- with diff)
-Show loading skeleton while fetching
-Optimistic UI updates
-Unsaved changes warning (before leaving page)
-4.5 Accessibility Improvements
-Global changes:
+// Coupons
+export const mockCoupons = [
+  { id: "coupon-1", code: "NEWYEAR50", discountType: "fixed", discountValue: 50, validFrom: "2024-01-01", validTill: "2024-01-31", maxUses: 100, usedCount: 23, minOrderAmount: 500, applicablePlans: "all", isActive: true },
+  { id: "coupon-2", code: "STUDENT20", discountType: "percent", discountValue: 20, validFrom: "2024-02-01", validTill: "2024-03-01", maxUses: 50, usedCount: 12, minOrderAmount: 0, applicablePlans: ["plan-2", "plan-3"], isActive: true },
+];
 
-Add aria-label to all icon buttons
-Add aria-describedby for form errors
-Implement keyboard navigation (Tab, Enter, Escape)
-Add focus trap to modals (use @radix-ui/react-focus-scope)
-Test with screen reader (NVDA/JAWS)
-Add skip navigation link
-Ensure color contrast meets WCAG AA (4.5:1 for text)
-Files to modify: All interactive components
+// Users (Managers & Staff)
+export const mockUsers = [
+  { id: "user-1", name: "Vikram Singh", phone: "+919876543211", email: "vikram@smartlibrary.com", role: "manager", status: "active", lastLogin: "2024-01-27T10:30:00Z", permissions: ["manage_students", "collect_fees", "view_reports"] },
+  { id: "user-2", name: "Priya Sharma", phone: "+919876543212", email: "priya@smartlibrary.com", role: "staff", status: "active", lastLogin: "2024-01-27T09:15:00Z", permissions: ["collect_fees", "mark_attendance"] },
+  { id: "user-3", name: "Rahul Gupta", phone: "+919876543213", email: "rahul@smartlibrary.com", role: "staff", status: "inactive", lastLogin: "2024-01-20T08:00:00Z", permissions: ["mark_attendance"] },
+];
 
-4.6 Navigation Group Improvements
-File to modify:
+// Students (generate 50+)
+export const mockStudents = Array.from({ length: 50 }, (_, i) => ({
+  id: `student-${i+1}`,
+  smartId: `LIB${String(i+1).padStart(3, '0')}`,
+  name: `Student ${i+1}`,
+  phone: `+9198765432${String(i).padStart(2, '0')}`,
+  parentPhone: `+9191234567${String(i).padStart(2, '0')}`,
+  email: `student${i+1}@gmail.com`,
+  college: i % 3 === 0 ? "Delhi University" : i % 3 === 1 ? "Jamia Millia" : "Amity University",
+  photoUrl: `/mock/avatar-${(i%5)+1}.png`,
+  status: i % 10 === 0 ? "suspended" : "active",
+  currentSeat: `A-${(i%20)+1}`,
+  shift: i % 2 === 0 ? "Morning" : "Evening",
+  dueAmount: i % 7 === 0 ? 500 : 0,
+  expiryDate: i % 5 === 0 ? subDays(today, 5).toISOString() : subDays(today, -10).toISOString(),
+  trustScore: i % 5, // 0-4
+  family: i % 10 === 0 ? { sharedPhone: "+919876543210", relationships: [{ studentId: `student-${i+2}`, type: "brother" }] } : null,
+}));
 
-src/components/layout/sidebar.tsx
-Changes:
+// Seats
+export const mockSeats = Array.from({ length: 100 }, (_, i) => ({
+  id: i+1,
+  number: `A-${String(i+1).padStart(2, '0')}`,
+  status: i < 70 ? "occupied" : i < 90 ? "available" : "maintenance",
+  occupant: i < 70 ? mockStudents[i % 50].id : null,
+  occupantName: i < 70 ? mockStudents[i % 50].name : null,
+  expiry: i < 70 ? mockStudents[i % 50].expiryDate : null,
+  lastOccupant: i >= 70 ? mockStudents[(i+5) % 50].name : null,
+  availableSince: i >= 70 ? subDays(today, Math.floor(Math.random()*10)).toISOString() : null,
+  maintenanceReason: i >= 90 ? "Chair repair" : null,
+  expectedAvailable: i >= 90 ? subDays(today, -2).toISOString() : null,
+}));
 
-Make navigation groups collapsible (accordion behavior)
-Add Settings to sidebar
-Add "Quick Access" group (Compare Branches, System Health, Recent Audit)
-Add version footer ("Smart Library v2.4.0 © 2026")
-Persist collapse state in localStorage
-4.7 Topbar Implementation Review
-File to examine:
+// Payments (100+ items)
+export const mockPayments = Array.from({ length: 120 }, (_, i) => ({
+  id: `pay-${i+1}`,
+  studentId: mockStudents[i % 50].id,
+  studentName: mockStudents[i % 50].name,
+  amount: [500, 800, 1200, 3200][i % 4],
+  mode: ["cash", "upi", "card"][i % 3],
+  date: subDays(today, Math.floor(Math.random()*30)).toISOString(),
+  receivedBy: mockUsers[i % 3].name,
+}));
 
-src/components/layout/topbar.tsx
-Verify:
+// Enquiries
+export const mockEnquiries = [
+  { id: "enq-1", name: "Priya Sharma", phone: "+919988776655", source: "walk_in", status: "interested", daysOld: 3, assignedTo: "Vikram Singh", followUpDate: subDays(today, -2).toISOString() },
+  { id: "enq-2", name: "Rahul Verma", phone: "+919988776656", source: "google_ads", status: "new", daysOld: 1, assignedTo: "Priya Sharma", followUpDate: subDays(today, -1).toISOString() },
+  // ... more
+];
 
-Breadcrumb navigation (dynamically generated from route)
-Global search (search across all branches, users, students)
-Notifications dropdown (real-time badge)
-User dropdown (Profile, Settings, Logout)
-If missing, implement all
+// PTPs (Promise to Pay)
+export const mockPTPs = [
+  { id: "ptp-1", studentId: "student-2", studentName: "Rahul Verma", amount: 450, promisedDate: subDays(today, 2).toISOString(), trustScore: 3, daysOverdue: 2, fulfilled: false, timesChanged: 1 },
+  { id: "ptp-2", studentId: "student-5", studentName: "Neha Gupta", amount: 800, promisedDate: subDays(today, -3).toISOString(), trustScore: 5, daysOverdue: 0, fulfilled: true, timesChanged: 0 },
+  // ... more
+];
 
-Verification Plan
-After completing each phase:
+// Complaints
+export const mockComplaints = [
+  { id: "comp-1", number: "CMP-001", title: "AC not working", category: "infrastructure", priority: "high", student: "Amit Kumar", isAnonymous: false, createdDate: subDays(today, 2).toISOString(), daysOpen: 2, status: "open" },
+  { id: "comp-2", number: "CMP-002", title: "Noisy environment", category: "noise", priority: "medium", student: null, isAnonymous: true, createdDate: subDays(today, 5).toISOString(), daysOpen: 5, status: "in_progress" },
+  // ... more
+];
 
-Automated Tests (if time permits)
-Unit tests for Zod schemas
-Integration tests for API calls
-Component tests for modals and tables
-Manual Verification Checklist
-Phase 1:
+// Notices
+export const mockNotices = [
+  { id: "notice-1", title: "Holiday on Holi", priority: "important", sentDate: subDays(today, 7).toISOString(), target: "all", deliveryRate: 98 },
+  { id: "notice-2", title: "New WiFi password", priority: "general", sentDate: subDays(today, 2).toISOString(), target: "morning", deliveryRate: 85 },
+  // ... more
+];
 
- Create Branch modal validates all fields correctly
- Edit Branch modal pre-fills and saves changes
- Branch table sorts, filters, and paginates
- Zustand stores update UI reactively
- React Query caches and refetches data
-Phase 2:
+// Assets
+export const mockAssets = [
+  { id: "asset-1", name: "Split AC - 1.5 Ton", category: "HVAC", model: "Voltas 183V", purchaseDate: "2023-12-01", purchaseAmount: 65000, warrantyExpiry: "2025-12-01", status: "working", nextMaintenance: "2024-06-01" },
+  { id: "asset-2", name: "Office Chair", category: "Furniture", model: "ErgoPlus", purchaseDate: "2023-06-01", purchaseAmount: 5000, warrantyExpiry: "2024-06-01", status: "maintenance", nextMaintenance: "2024-02-15" },
+  // ... more
+];
 
- Branch details page shows all 6 tabs with correct data
- User profile page shows all 4 tabs
- Edit modals work for both branches and users
- Deactivate flow shows confirmation and migrates students
- Reset password generates secure password and emails user
-Phase 3:
+// Daily Settlements
+export const mockSettlements = [
+  { id: "settle-1", date: yesterday.toISOString(), settledBy: "Vikram Singh", systemCalc: 12500, actualCash: 12500, variance: 0, status: "Balanced", evidence: "/mock/slip1.jpg", notes: "All good" },
+  { id: "settle-2", date: subDays(today, 2).toISOString(), settledBy: "Priya Sharma", systemCalc: 9800, actualCash: 9300, variance: -500, status: "Flagged", evidence: "/mock/slip2.jpg", notes: "Short by 500, will check tomorrow" },
+];
 
- Bulk operations work for 10+ selected rows
- Socket.io connects and receives real-time updates
- India map displays branches correctly with tooltips
- Trend charts render with correct data
- Diff viewer shows audit log changes accurately
-Phase 4:
+// Audit Logs
+export const mockAuditLogs = [
+  { id: "audit-1", timestamp: subDays(today, 1).toISOString(), user: "Vikram Singh", action: "DELETE_PAYMENT", entity: "Payment", details: "Deleted ₹500 cash receipt #123", severity: "Critical", ip: "192.168.1.100" },
+  { id: "audit-2", timestamp: subDays(today, 2).toISOString(), user: "Priya Sharma", action: "MANUAL_DISCOUNT", entity: "Subscription", details: "Applied 10% discount to student LIB045", severity: "Medium", ip: "192.168.1.101" },
+  // ... more
+];
 
- Mock data loads 500+ students without performance issues
- API integration handles errors gracefully (401, 500)
- Settings save to backend and persist
- Keyboard navigation works throughout app
- No console errors or warnings
-Implementation Order
-Day 1-2: Zod Schemas + React Hook Form
-Create all validation schemas
-Refactor Create/Edit modals
-Test form validation
-Day 3-4: State Management
-Setup Zustand stores
-Setup React Query
-Migrate components to use stores
-Day 5-6: TanStack Tables
-Create table components
-Implement sorting, filtering, pagination
-Add bulk selection
-Day 7-9: Branch Details Page
-Create 6 tabs
-Implement charts and tables per tab
-Connect to data stores
-Day 10-11: User Profile Page
-Create 4 tabs
-Implement permission matrix
-Session history table
-Day 12-13: Edit & Additional Modals
-Edit Branch/User modals
-Deactivate, Reset Password, Announcement modals
-Test all flows
-Day 14-15: Bulk Operations
-Implement multi-select in tables
-Bulk action toolbar
-Progress tracking
-Day 16-18: Real-time + Visualizations
-Socket.io integration
-Notification system
-India map
-Trend charts
-Diff viewer
-Day 19-20: API Integration
-Axios setup
-API layer for all entities
-Error handling
-Day 21-22: Polish
-Mock data increase
-Settings backend
-Accessibility
-Navigation improvements
-Day 23-25: Testing & Bug Fixes
-Manual QA
-Fix edge cases
-Performance optimization
-Final review
-Success Criteria
-✅ Phase 1 Complete: All forms validate with Zod, tables use TanStack, state managed by Zustand
-✅ Phase 2 Complete: Branch/User details pages exist, all modals implemented
-✅ Phase 3 Complete: Real-time updates work, advanced charts render, diff viewer functional
-✅ Phase 4 Complete: API integrated, accessible, all spec requirements met
+// Waitlist
+export const mockWaitlist = [
+  { id: "wait-1", name: "Rohit Mehra", phone: "+919876543220", preferredShift: "Morning", joinedDate: subDays(today, 5).toISOString(), status: "Waiting", potentialRevenue: 1200 },
+  { id: "wait-2", name: "Anjali Kapoor", phone: "+919876543221", preferredShift: "Evening", joinedDate: subDays(today, 3).toISOString(), status: "Waiting", potentialRevenue: 800 },
+  // ... more
+];
 
-Final Target: 100% SuperAdmin feature parity with specifications
+// Staff Performance (for charts)
+export const mockStaffPerformance = [
+  { name: "Vikram Singh", revenue: 120000, conversions: 15, attendanceMarked: 450 },
+  { name: "Priya Sharma", revenue: 45000, conversions: 8, attendanceMarked: 320 },
+  { name: "Rahul Gupta", revenue: 23000, conversions: 4, attendanceMarked: 180 },
+];
 
-Risk Mitigation
-Risk: Complex features take longer than estimated
-Mitigation: Focus on Phase 1-2 first (core functionality), defer Phase 3-4 if needed
+// Daily revenue for chart
+export const mockDailyRevenue = Array.from({ length: 30 }, (_, i) => ({
+  date: format(subDays(today, 29-i), 'yyyy-MM-dd'),
+  amount: Math.floor(Math.random() * 15000) + 5000,
+}));
+```
 
-Risk: Socket.io backend not available
-Mitigation: Mock Socket.io events in frontend for demo purposes
+---
 
-Risk: Performance issues with large datasets
-Mitigation: Use TanStack virtualzation, React Query pagination, lazy loading
+## 🧭 GLOBAL LAYOUT (OWNER-SPECIFIC)
 
-Risk: Breaking existing functionality
-Mitigation: Test after each phase, use version control, incremental rollout
+### Sidebar (Left, collapsible)
 
-Ready to begin implementation. Starting with Phase 1: Core Infrastructure.
+**Logo**: Smart Library 360 + role badge "👑 OWNER" (blue background).
 
+**Navigation groups** (all icons from Lucide React):
 
-Comment
-Ctrl+Alt+M
+1. **Dashboard**  
+   - `Home` – Overview (`/dashboard`)
+
+2. **Settings**  
+   - `Settings` – Branch Settings (`/settings/branch`)  
+   - `Package` – Plan Manager (`/settings/plans`)  
+   - `Ticket` – Coupon Manager (`/settings/coupons`)  
+   - `Users` – User Management (`/settings/users`)
+
+3. **Finance**  
+   - `Receipt` – Expenses (`/finance/expenses`)  
+   - `Wallet` – Daily Settlements (`/finance/settlements`)  
+   - `BarChart3` – Reports (`/finance/reports`)
+
+4. **Admin Tools**  
+   - `Wrench` – Assets & Maintenance (`/admin/assets`)  
+   - `IdCard` – ID Card Generator (`/admin/id-cards`)  
+   - `Upload` – Bulk Import (`/admin/import`)  
+   - `Shield` – Audit Logs (`/admin/audit`)
+
+5. **Members**  
+   - `UserCircle` – Student Directory (`/members/directory`)  
+   - `Heart` – Family Management (`/members/families`)  
+   - `Clock` – Waitlist (`/members/waitlist`)  
+   - `Ban` – Blacklist (`/members/blacklist`)  
+   - `GraduationCap` – Alumni (`/members/alumni`)
+
+6. **Communication**  
+   - `Megaphone` – Notices (`/communication/notices`)  
+   - `MessageSquare` – Complaints (`/communication/complaints`)
+
+**Bottom of sidebar**:  
+- Current branch name + status indicator (active).  
+- Collapse/expand toggle.
+
+### Topbar (Fixed)
+
+- **Breadcrumb** (e.g., Dashboard / Finance / Expenses)
+- **Global search** (debounced) – searches students, enquiries, payments (using mock data)
+- **Notifications drawer** (bell icon with badge):
+  - Overdue PTPs count
+  - New complaints count
+  - Flagged settlements count
+  - Waitlist openings count
+- **User dropdown**:
+  - Profile (name, email, role)
+  - Settings (shortcut to `/settings/branch`)
+  - Logout (simulated toast)
+
+---
+
+## 🏠 1. DASHBOARD (`/dashboard`)
+
+**Layout**: 3-Row Grid.
+
+### Row 1 – Strategic KPIs (4 cards)
+
+| Card | Mock Data Source | Visual |
+|------|------------------|--------|
+| **Monthly Revenue** | Sum of `mockPayments` where date in current month | ₹125,000 (target ₹150,000) with progress bar, icon `CreditCard` |
+| **Active Students** | Count of `mockStudents` with status 'active' | 85 / 100 capacity, icon `Users` |
+| **Cash in Hand (Today)** | From `mockSettlements` latest entry (systemCalc) | ₹12,500, icon `Wallet` |
+| **Flagged Settlements** | Count of `mockSettlements` with status 'Flagged' | 1 (red card), icon `AlertTriangle`, click opens `/finance/settlements` |
+
+**Click Actions**:
+- Click on any card → navigate to relevant page (e.g., Monthly Revenue → `/finance/reports`)
+
+### Row 2 – Analytics (2 columns)
+
+**Left (60%) – Revenue Trend Chart**  
+- AreaChart using `mockDailyRevenue` (last 30 days).  
+- X‑axis: date, Y‑axis: amount.  
+- Tooltip shows date and amount.  
+- Toggle between "Daily" and "Cumulative".
+
+**Right (40%) – Staff Leaderboard**  
+- BarChart using `mockStaffPerformance` (revenue per staff).  
+- Click bar → opens modal with staff details (name, total collections, conversions).
+
+### Row 3 – Operational Snapshot (3 columns)
+
+**Left (33%) – Mini Seat Matrix (10×10 grid)**  
+- Grid cells (12×12 px) with status colours:  
+  - Green: available (mockSeats where status='available')  
+  - Red: occupied (status='occupied')  
+  - Orange: maintenance (status='maintenance')  
+  - Yellow: expiring (occupant expiry < 3 days)  
+- Tooltip on hover: seat number, student name (if occupied), expiry.  
+- Click → navigate to read-only seat view (no assignment).
+
+**Middle (33%) – Recent Audit Alerts**  
+- List last 3 `mockAuditLogs` with severity 'Critical' or 'High'.  
+- Each item: timestamp, user, action (bold), severity badge.  
+- Click item → open audit log detail modal.
+
+**Right (33%) – Waitlist Summary**  
+- Card: "Potential Revenue: ₹5,000" (sum of `mockWaitlist` potentialRevenue).  
+- List top 3 waitlisted names with shift.  
+- "View All" link → navigate to `/members/waitlist`.
+
+---
+
+## ⚙️ 2. SETTINGS MODULE
+
+### 2.1 Branch Settings (`/settings/branch`)
+
+**Tabs**:
+
+**Tab 1: General Information** (read‑only, from `mockBranch`)  
+- Name, Address, GST, PAN, Contact, Email, Capacity.
+
+**Tab 2: Operating Hours** (editable)  
+- Morning shift: start time (06:00), end time (12:00) – time pickers.  
+- Evening shift: start time (12:00), end time (22:00) – time pickers.  
+- "Enable Hybrid Scheduling" toggle.
+
+**Tab 3: Fee Rules** (editable)  
+- Security deposit amount (number, default 500)  
+- Late fee per day (number, default 50)  
+- Grace period (days, default 5)  
+- Locker monthly fee (number, default 200)  
+- Absentee alert after (days, default 3)
+
+**Tab 4: Holiday Calendar**  
+- List of holidays (date, reason, annual toggle) from mock data (create a small array).  
+- "Add Holiday" button → modal with date picker, reason, "Recurring annually" checkbox.
+
+**Tab 5: Notifications**  
+- Parent alert after X absences (slider, min 1 max 10)  
+- Renewal reminder days before expiry (slider, default 7)  
+- PTP reminder schedule (dropdown: daily, every 3 days, weekly)
+
+**Save button** – shows toast "Settings updated successfully" and updates local state.
+
+### 2.2 Plan Manager (`/settings/plans`)
+
+**Table** (TanStack):
+- Columns: Name, Duration (days), Price (₹), Features (icons), Students Count, Status (toggle), Actions (Edit, Deactivate).
+- Sorting on Name, Price, Students.
+- Filter by Status (Active/Inactive).
+
+**"Add Plan" Modal** (Service 20.1):
+- Name (text, required)
+- Description (textarea, optional)
+- Duration (days, number, required)
+- Price (number, required)
+- Features (multi‑select: "AC", "Locker", "WiFi", "Printing", "Extended Hours")
+- Plan type (radio: basic, premium)
+- Max students (number, optional)
+- Discount percent (number, optional)
+- Active (toggle, default true)
+- Zod validation: name min 3 chars, price > 0, duration > 0.
+
+**"Edit Plan" Modal** – pre-filled with existing data, same fields.
+
+**Deactivate** – confirmation dialog, then set `isActive` to false in mock data.
+
+### 2.3 Coupon Manager (`/settings/coupons`)
+
+**Table**:
+- Columns: Code, Discount (type + value), Valid From, Valid Till, Uses (used/max), Status (Active/Expired), Actions (Edit, Deactivate, Delete).
+- Filter by Status.
+
+**"Add Coupon" Modal** (Service 21.1):
+- Code (text, auto‑generate option with button)
+- Description (textarea, optional)
+- Discount type (radio: percentage / fixed)
+- Discount value (number, required)
+- Valid from (date picker, required)
+- Valid till (date picker, required, must be after from)
+- Max uses (number, optional, must be > 0)
+- Min order amount (number, optional, default 0)
+- Applicable plans (multi‑select, or "All plans" radio)
+- Active (toggle, default true)
+- Zod validation.
+
+### 2.4 User Management (`/settings/users`)
+
+**Table** (TanStack):
+- Columns: Name, Phone, Role (badge: Manager=blue, Staff=gray), Status (Active/Inactive), Last Login, Actions (Edit, Reset Password, Deactivate).
+- Filter by Role, Status.
+
+**"Add User" Modal** (Service 1.1) – Owner can create **Manager** or **Staff**:
+- Name (text, required)
+- Phone (E.164 format, required)
+- Email (email, optional)
+- Password (auto‑generate toggle, or manual with strength meter)
+- Role (select: manager, staff)
+- Permissions (checkboxes based on role – pre-populated, can customize)
+  - For Manager: "Manage Students", "Collect Fees", "View Reports", "Mark Attendance"
+  - For Staff: "Collect Fees", "Mark Attendance", "View Students"
+- Send welcome email (checkbox, default true)
+- Active (toggle, default true)
+- Zod validation.
+
+**"Edit User" Modal** – same fields, password optional.
+
+**"Reset Password" Modal** – auto‑generate or manual, force change on next login checkbox.
+
+---
+
+## 💰 3. FINANCE MODULE
+
+### 3.1 Expenses (`/finance/expenses`)
+
+**Table** (TanStack):
+- Columns: Date, Category, Amount, Vendor, Payment Mode, Receipt (link icon), Actions (Edit, Delete).
+- Filter by Category, Date Range.
+- Sorting by Date, Amount.
+
+**"Add Expense" Modal** (Service 12.2):
+- Category (select: Rent, Utilities, Salaries, Maintenance, Marketing, Other)
+- Amount (number, required)
+- Description (textarea, optional)
+- Expense date (date picker, default today)
+- Vendor name (text, optional)
+- Bill number (text, optional)
+- GST amount (number, auto‑calculated if category has GST, editable)
+- Payment mode (select: cash, bank_transfer, cheque, UPI)
+- Receipt upload (file – simulate by showing file name after upload)
+- Zod validation.
+
+**Budget Tracking Cards** (above table):
+- For each category, show monthly budget (from `mockBranch.monthlyBudget`) and spent amount (sum of expenses this month).
+- Progress bar: green if <80%, yellow if 80‑100%, red if >100%.
+
+### 3.2 Daily Settlements (`/finance/settlements`) – Service 13 (CRITICAL)
+
+**Purpose**: Anti‑theft. Verify if managers deposited correct cash.
+
+**Table** (TanStack):
+- Columns: Date, Settled By, System Calculation (₹), Actual Cash (₹), Variance (₹), Status (Badge: Balanced=green, Flagged=red), Evidence (link), Actions (View Details).
+- Highlight rows where Variance < 0 (cash shortage) with light red background.
+
+**"View Details" Modal** (click on row):
+- Shows settlement details: date, staff, system vs actual.
+- Displays "Bank Deposit Slip" image placeholder (simulate from evidence URL).
+- Manager notes field (editable by Owner? Owner can add note).
+- "Mark as Reviewed" button (updates status to "Reviewed" in mock).
+
+**Flagged Settlement Alert** on dashboard (already implemented).
+
+### 3.3 Reports (`/finance/reports`) – Service 15
+
+**Tabs**:
+
+**Tab 1: P&L Statement** (Service 12.3)
+- Date range selector (default current month).
+- Summary cards:
+  - Total Revenue (from payments)
+  - Total Expenses (from expenses)
+  - Gross Profit
+  - Net Profit (after tax, assume 18% tax)
+  - Profit Margin %
+- Bar chart: monthly comparison of revenue vs expenses.
+
+**Tab 2: Revenue Report**
+- Daily collection line chart (from `mockDailyRevenue`).
+- Payment mode breakdown (pie chart: cash, UPI, card).
+- Staff collection leaderboard (table with staff name, total collected, number of transactions).
+
+**Tab 3: Occupancy Report** (Service 5.4)
+- Average occupancy per shift (cards).
+- Revenue per seat (table: seat number, student name, total revenue generated).
+- Occupancy heatmap (calendar view with colour by % – use mock data).
+
+**Tab 4: Student Report**
+- New admissions vs exits (line chart over months).
+- Retention rate (cohort table).
+- Student distribution by plan (pie chart).
+
+**Export buttons** (simulate PDF/Excel download with toast).
+
+---
+
+## 🛠️ 4. ADMIN TOOLS
+
+### 4.1 Assets & Maintenance (`/admin/assets`) – Service 22
+
+**Table** (TanStack):
+- Columns: Asset Name, Category, Model, Purchase Date, Warranty Expiry, Status (badge), Next Maintenance, Actions (Edit, Log Maintenance).
+- Filter by Category, Status.
+
+**"Add Asset" Modal** (Service 22.1):
+- Name (text, required)
+- Category (select: HVAC, Furniture, Electronics, Other)
+- Quantity (number, default 1)
+- Purchase Date (date picker)
+- Purchase Amount (number)
+- Vendor (text, optional)
+- Warranty (months, number)
+- Model (text)
+- Location (text)
+- Photo upload (file – simulate)
+
+**"Maintenance Log" Modal** (click on asset row):
+- Service type (select: preventive, repair)
+- Description (textarea)
+- Cost (number)
+- Vendor (text)
+- Serviced Date (date picker)
+- Next Due Date (date picker)
+- Invoice upload (file – simulate)
+
+**Maintenance Alerts** widget on dashboard (if any assets with nextMaintenance < 7 days).
+
+### 4.2 ID Card Generator (`/admin/id-cards`) – Service 16
+
+**Single Card Generation**:
+- Student search (autocomplete with name, smart ID, photo) using `mockStudents`.
+- Preview card with photo, name, smart ID, QR code (QR code contains student data as string).
+- "Generate PDF" button – triggers toast "ID Card generated" and simulates download.
+
+**Bulk Generation**:
+- Student selector table with checkboxes (paginated).
+- "Generate All" – creates a zip of PDFs (simulate with toast).
+- Template Selector (dropdown: default, premium, custom).
+
+### 4.3 Bulk Import (`/admin/import`) – Service 14
+
+**Interface**:
+- "Download Template" button (CSV/Excel) – simulates download.
+- File upload area (drag & drop) – accepts .xlsx, .csv.
+- Column mapping (if custom file) – show dropdowns to map columns.
+- Preview of first 10 rows with validation status (green/red).
+
+**Import Progress**:
+- Show progress bar (simulated with setInterval for 3 seconds).
+- After completion: success count, failure count, download error report button.
+- "Rollback" button (if import was wrong) – reverts changes in mock data.
+
+### 4.4 Audit Logs (`/admin/audit`) – Service 25 (CRITICAL)
+
+**Purpose**: Fraud detection.
+
+**Filters**:
+- Severity (Critical, High, Medium, Low) – multi‑select.
+- User (select from mockUsers)
+- Date range (date pickers)
+
+**Table** (TanStack virtualized for large datasets):
+- Columns: Timestamp, User (avatar + name), Action (bold), Entity, Details (truncated), Severity (badge), IP Address.
+- Red background for rows with action "DELETE" or severity "Critical".
+
+**Click row** → opens **Audit Diff Modal**:
+- Shows old vs new values in a diff viewer (side‑by‑side).
+- For deleted entities, shows a red "Deleted" badge.
+
+**Real‑time simulation**: Every 30 seconds, a new audit log appears (push via simulated socket). Update table automatically.
+
+---
+
+## 👥 5. MEMBERS MODULE
+
+### 5.1 Student Directory (`/members/directory`) – Service 4
+
+**Table** (TanStack with advanced filtering):
+- Columns: Smart ID, Name, Phone, Current Seat, Shift, Plan (from subscription), Due Amount (red if >0), Expiry Date (highlight if <7 days), Trust Score (⭐ rating, 0‑5), Status (badge).
+- Filters: Status, Shift, Plan, Due Payment (yes/no).
+- Global search across name, phone, smart ID.
+
+**Row actions**:
+- "View Profile" – opens student profile page (see below).
+- "Collect Fee" – opens fee collection modal (but Owner may not collect, so maybe just view due).
+- "Send Message" – opens WhatsApp modal (simulated).
+
+**Student Profile Page** (`/members/students/[id]`):
+
+**Tabs**:
+
+**Tab 1: Overview**
+- Personal info card (photo, name, phone, parent phone, email, college)
+- Documents (Aadhar, ID proof) – view/download links (simulate)
+- Current seat & shift (read‑only)
+- Trust score (⭐ rating)
+- Family tree visualization (if family exists, show nodes with relationship lines, guardian icon)
+
+**Tab 2: Subscription**
+- Current plan details (name, price, start, end)
+- Payment history table (date, amount, mode, received by)
+- Upcoming renewals (if any)
+
+**Tab 3: Attendance**
+- Calendar view (month grid) with present/absent dots (mock data)
+- Monthly attendance % (card)
+- Absence pattern analysis (e.g., "Mostly absent on Mondays")
+
+**Tab 4: Activity**
+- Login history (if app access) – mock data
+- Complaint history (table of complaints filed by this student)
+- Referral tracking (if referred others)
+
+**Actions**:
+- Suspend/Reactivate (toggle)
+- Exit (with refund calculation modal)
+
+### 5.2 Family Management (`/members/families`)
+
+**Family Groups Table**:
+- Primary member, Phone, Members count, Guardian name
+
+**Click row** → expand **Family Tree** visual:
+- Interactive tree with nodes (student names)
+- Relationship lines labelled (brother, sister, etc.)
+- Guardian icon (👑) on primary
+- Click node → quick popup with student details (name, phone, due amount)
+
+**"Add to Family" button**:
+- Search existing student (autocomplete)
+- Select relationship (brother, sister, cousin, other)
+- Set as guardian toggle
+- Save → updates mock data and re-renders tree
+
+### 5.3 Waitlist (`/members/waitlist`) – Service 17
+
+**Top Card**: "Potential Revenue: ₹5,000" (sum of `mockWaitlist` potentialRevenue).
+
+**Table**:
+- Columns: Priority (drag handle), Name, Phone, Preferred Shift, Joined Date (days waiting), Status (Waiting, Notified, Converted), Actions (Notify, Remove).
+- Drag rows to reorder priority (simulate priority change).
+
+**"Add to Waitlist" Modal**:
+- Student search (or "New Person" option)
+- Preferred shift (select)
+- Preferred slots (if custom, show time pickers)
+- Max wait days (number, default 30)
+- Notification preference (whatsapp, sms, email, all)
+- Notes
+
+**Auto‑notify simulation**: When a seat becomes available (simulate with button "Free Seat"), show toast "Notifying top 3 waitlist entries".
+
+### 5.4 Blacklist (`/members/blacklist`) – Service 18
+
+**Table**:
+- Columns: Phone, Name, Reason, Severity (badge: high=red, medium=orange, low=yellow), Added By, Date, Actions (Remove).
+- Filter by Severity.
+
+**"Add to Blacklist" Modal** (Service 18.1):
+- Phone (required, E.164)
+- Name (required)
+- Reason (textarea, required)
+- Severity (select: high, medium, low)
+- Evidence URLs (file upload, optional)
+- "Share with other branches" (disabled since Owner has one branch)
+
+**Remove** – confirmation dialog, then remove from mock data.
+
+### 5.5 Alumni (`/members/alumni`) – Service 4.6
+
+**Table**:
+- Columns: Name, Smart ID, Exit Date, Reason, Forward Address (optional), Actions (Re‑admit).
+- Filter by Exit Date.
+
+**"Re‑admit"** – opens admission wizard (Service 4.1) pre‑filled with student data (name, phone, etc.) but with new seat selection (read‑only for Owner? Actually Owner can view but not assign seats, so maybe just view and then Manager does admission).
+
+---
+
+## 📢 6. COMMUNICATION MODULE
+
+### 6.1 Notices (`/communication/notices`) – Service 11
+
+**Table**:
+- Columns: Title, Priority (badge: emergency=red, important=orange, general=blue), Sent Date, Target, Delivery Rate (%), Actions (View Report, Delete).
+
+**"Create Notice" Modal** (Service 11.1):
+- Title (text, required)
+- Message (textarea, required, markdown support)
+- Priority (select: general, important, emergency)
+- Target audience (select: all students, morning shift, evening shift, custom)
+- Channels (checkboxes: WhatsApp, SMS, Email, In‑app) – at least one.
+- Schedule (toggle: immediate or date‑time picker)
+- Attachments (file upload, optional)
+
+**Delivery Report** (click on notice):
+- Modal with total sent, failed, read receipts (mock data).
+- List of failed deliveries with reason.
+
+### 6.2 Complaints (`/communication/complaints`) – Service 10
+
+**Tabs**: Open / Resolved
+
+**Open Complaints Table**:
+- Columns: Complaint Number, Title, Category (badge), Priority (badge), Student (or "Anonymous"), Created Date, Days Open, Actions (Assign, Mark In Progress, Resolve).
+
+**"Resolve" Modal**:
+- Resolution notes (textarea)
+- Status (resolved, closed)
+- Notify complainant (checkbox, default true)
+
+**Resolved Complaints Table**:
+- Same columns + Resolved Date, Resolution Notes.
+
+**Add Complaint** button (for Owner to add on behalf of student) – modal with title, description, category, priority, student (optional), anonymous toggle.
+
+---
+
+## 🔄 7. REAL‑TIME SIMULATION
+
+- Use `setInterval` in a React context to simulate socket events.
+- Every 30 seconds, push a new notification (e.g., "New complaint filed", "Settlement flagged").
+- Update notification badge in topbar.
+- For audit logs, add a new entry every minute (simulate).
+- For waitlist, randomly free a seat and show toast "Seat available! Notifying waitlist".
+
+---
+
+## 🧨 INTERACTION & BEHAVIOR RULES
+
+1. **Buttons must work**: Every "Add", "Edit", "Delete", "Save" button must open a Shadcn Dialog or trigger a Sonner toast.
+2. **Optimistic UI**: When adding/editing/deleting in mock data, the UI should update immediately (update local state).
+3. **Validation**: All forms must use React Hook Form + Zod with error messages displayed inline.
+4. **Responsive**: Sidebar collapses into a Sheet component on mobile. Tables scroll horizontally.
+5. **Empty States**: If a table has no data, show a "No records found" illustration.
+6. **Loading States**: Show skeleton loaders for initial data fetch (even with mock data, simulate a 300ms delay).
+
+---
+
+## ✅ EXPECTED DELIVERABLES
+
+The AI should generate a complete Next.js project with:
+- All pages listed above, with proper routing.
+- All components (tables, modals, charts) in the `components` folder.
+- Mock data in `lib/mockData.ts` as specified.
+- Global layout with sidebar and topbar.
+- Fully interactive UI (forms submit, tables filter, charts render, toasts appear).
+- Simulated real‑time updates.
+- No backend required – everything works with hardcoded data.
+
+**Copy this prompt into Bolt.new or any AI UI builder and it will generate the entire Owner dashboard, ready for live testing.**
