@@ -1,6 +1,7 @@
 'use client';
 
-import { OpsLayout } from '@/components/layout/manager-layout';
+import { useState } from 'react';
+import { ManagerLayout } from '@/components/layout/manager-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,13 +16,33 @@ import {
 } from '@/lib/opsData';
 import { AlertCircle, Users, Phone, DollarSign, Plus, Camera } from 'lucide-react';
 import { format } from 'date-fns';
+import { AdmissionWizard } from '@/components/modals/admission-wizard';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 export default function OpsDashboard() {
+  const [showAdmission, setShowAdmission] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [smartId, setSmartId] = useState('');
+  
   const duesPending = mockStudents.filter(s => s.dueAmount > 0);
   const unallocated = mockStudents.filter(s => s.status === 'active' && !s.currentSeat);
   const leadsToCall = mockEnquiries.filter(e => 
     format(new Date(e.followUpDate), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
   );
+
+  const handleQuickScan = () => {
+    const student = mockStudents.find(s => s.smartId === smartId);
+    if (student) {
+      toast.success(`${student.name} marked IN`);
+      setShowScanner(false);
+      setSmartId('');
+    } else {
+      toast.error('Student not found');
+    }
+  };
 
   return (
     <ManagerLayout>
@@ -33,11 +54,11 @@ export default function OpsDashboard() {
             <p className="text-sm text-slate-500">Welcome back! Here's what's happening today.</p>
           </div>
           <div className="flex gap-2">
-            <Button>
+            <Button onClick={() => setShowAdmission(true)}>
               <Plus className="h-4 w-4 mr-2" />
               New Admission
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => setShowScanner(true)}>
               <Camera className="h-4 w-4 mr-2" />
               Mark In/Out
             </Button>
@@ -208,6 +229,34 @@ export default function OpsDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modals */}
+      {showAdmission && (
+        <AdmissionWizard open={showAdmission} onClose={() => setShowAdmission(false)} />
+      )}
+      
+      {/* Quick Scanner */}
+      <Dialog open={showScanner} onOpenChange={setShowScanner}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Quick Mark In/Out</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Smart ID</Label>
+              <Input
+                value={smartId}
+                onChange={(e) => setSmartId(e.target.value)}
+                placeholder="Enter Smart ID..."
+                onKeyDown={(e) => e.key === 'Enter' && handleQuickScan()}
+              />
+            </div>
+            <Button onClick={handleQuickScan} className="w-full">
+              Mark Attendance
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </ManagerLayout>
   );
 }

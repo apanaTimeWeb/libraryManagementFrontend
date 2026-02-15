@@ -6,8 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Student } from '@/lib/types/ops-types';
 import { mockPayments, mockAttendance } from '@/lib/opsData';
+import { useRoleStore } from '@/lib/stores/role-store';
 import { format } from 'date-fns';
-import { FileText, Ban, CheckCircle } from 'lucide-react';
+import { FileText, Ban, CheckCircle, ArrowRightLeft, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { ShiftMigrationModal } from './shift-migration-modal';
+import { StudentExitModal } from './student-exit-modal';
 
 interface StudentProfileDrawerProps {
   student: Student;
@@ -16,6 +20,9 @@ interface StudentProfileDrawerProps {
 }
 
 export function StudentProfileDrawer({ student, open, onClose }: StudentProfileDrawerProps) {
+  const { isManager } = useRoleStore();
+  const [showShiftMigration, setShowShiftMigration] = useState(false);
+  const [showExit, setShowExit] = useState(false);
   const payments = mockPayments.filter(p => p.studentId === student.id);
   const attendance = mockAttendance.filter(a => a.studentId === student.id);
 
@@ -63,6 +70,18 @@ export function StudentProfileDrawer({ student, open, onClose }: StudentProfileD
                 </>
               )}
             </Button>
+            {isManager() && (
+              <>
+                <Button size="sm" variant="outline" onClick={() => setShowShiftMigration(true)}>
+                  <ArrowRightLeft className="h-4 w-4 mr-2" />
+                  Change Shift
+                </Button>
+                <Button size="sm" variant="destructive" onClick={() => setShowExit(true)}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Exit
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Tabs */}
@@ -171,6 +190,22 @@ export function StudentProfileDrawer({ student, open, onClose }: StudentProfileD
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Modals */}
+        {showShiftMigration && (
+          <ShiftMigrationModal
+            student={student}
+            open={showShiftMigration}
+            onClose={() => setShowShiftMigration(false)}
+          />
+        )}
+        {showExit && (
+          <StudentExitModal
+            student={student}
+            open={showExit}
+            onClose={() => setShowExit(false)}
+          />
+        )}
       </SheetContent>
     </Sheet>
   );
