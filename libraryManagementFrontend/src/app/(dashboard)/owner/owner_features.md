@@ -1403,3 +1403,610 @@ Result: Owner tension-free, manager empowered, business scalable
 ---
 
 **Conclusion:** Owner Dashboard sirf ek software nahi hai, yeh ek **Business Intelligence System** hai jo owner ko **Data-Driven Decisions** lene mein help karta hai. Trust nahi, Verify karo. Gut feeling nahi, Data dekho. Manual nahi, Automated karo. **Result: Profitable, Scalable, Tension-Free Business!** 🚀
+
+- Hiring/firing decision owner ka hai (HR responsibility)
+- Salary owner decide karta hai (budget control)
+- Permissions owner set karta hai (security control)
+- Manager apne aap ko zyada permissions nahi de sakta (conflict of interest)
+
+---
+
+## 📥 Bulk Import (`/owner/admin/import`)
+
+### Kya hai yeh feature?
+Yeh **Data Migration Tool** hai. Excel file upload karke ek saath 100-500 students ka data import kar sakte ho. New branch setup ke time ya existing data migrate karne ke liye.
+
+### Kyun chahiye yeh feature? (System Setup)
+
+**The Manual Entry Problem:**
+Agar 200 students ka data manually enter karna ho to:
+- Time: 200 students × 5 minutes = 1,000 minutes = 16+ hours
+- Errors: Manual typing mein mistakes (phone number, email)
+- Cost: Staff ka time waste (₹15,000 salary / 200 hours = ₹75/hour × 16 = ₹1,200)
+
+**Bulk Import Solution:**
+- Time: 5 minutes (upload + validate)
+- Errors: Excel mein ek baar check kar lo, phir upload
+- Cost: Zero (automated)
+
+**When to Use:**
+
+```
+Scenario 1: New Branch Setup
+- Situation: Purani library band ho gayi, students tumhare paas aa rahe hain
+- Data: 150 students ka Excel sheet (name, phone, plan)
+- Action: Bulk import (5 minutes vs 12 hours manual entry)
+
+Scenario 2: System Migration
+- Situation: Pehle manual register use karte the, ab software mein shift ho rahe ho
+- Data: Last 2 years ka data (500 students)
+- Action: Excel mein organize karo, bulk import
+
+Scenario 3: Franchise Takeover
+- Situation: Kisi aur ki library kharid li, unka data migrate karna hai
+- Data: 300 students
+- Action: Bulk import with validation
+```
+
+**Why Owner Only (High Risk):**
+
+**Risk 1: Data Corruption**
+Agar galat file upload ho gayi to:
+- Existing students ka data overwrite ho sakta hai
+- Phone numbers mix-up (wrong student ko call)
+- Payment history lost
+
+**Risk 2: Fraud**
+Agar manager ko access hai to:
+- Fake students add kar sakta hai (ghost students)
+- Friends/family ko free admission de sakta hai
+- Data manipulation (fees change kar sakta hai)
+
+**Risk 3: Privacy Breach**
+Bulk export + import = complete database copy
+- Competitor ko bech sakta hai
+- Personal data leak (GDPR violation)
+
+**Safe Import Process:**
+
+```
+Step 1: Download Template
+- Excel template with exact columns
+- Sample data for reference
+- Validation rules explained
+
+Step 2: Fill Data
+- Name, Phone, Email, Plan, Start Date
+- Mandatory fields marked
+- Format instructions (phone: +91-XXXXXXXXXX)
+
+Step 3: Validate
+- System checks for duplicates
+- Phone number format validation
+- Email format validation
+- Plan existence check
+
+Step 4: Preview
+- Show first 10 rows
+- Owner reviews before final import
+- "Looks good? Confirm to proceed"
+
+Step 5: Import
+- Process in background (if 500+ records)
+- Success/failure report
+- Error log (which rows failed, why)
+
+Step 6: Verify
+- Random sample check (10 students)
+- Cross-verify with Excel
+- Confirm data integrity
+```
+
+**Real Use Case:**
+Delhi mein ek library band ho gayi (rent issue). Owner ne 180 students ka data Excel mein liya aur apni library mein bulk import kiya. 10 minutes mein sab students migrate ho gaye. Manual entry mein 2-3 din lagte.
+
+---
+
+## 📢 Communication Section
+
+### 1. Complaints Management (`/owner/communication/complaints`)
+
+### Kya hai yeh feature?
+Yeh **Customer Feedback System** hai. Students jo complaints karte hain (noise, cleanliness, AC, staff behavior) - sab track hota hai. Priority set karo, assign karo, resolve karo.
+
+### Kyun chahiye yeh feature? (Service Quality)
+
+**The Silent Churn Problem:**
+Agar students complain nahi kar sakte to:
+- Dissatisfied students chup-chaap chale jayenge
+- Owner ko pata hi nahi chalega ki problem kya hai
+- Same problem repeat hoti rahegi
+- Negative word-of-mouth (friends ko bolenge "mat jao, bahut problems hain")
+
+**Complaint Categories:**
+
+```
+Category 1: Infrastructure (40%)
+- AC not working (most common)
+- WiFi slow/not working
+- Washroom dirty
+- Lights not working
+- Chairs/tables broken
+
+Category 2: Noise (30%)
+- Students talking loudly
+- Phone calls disturbing
+- Music playing
+- Construction noise outside
+
+Category 3: Staff Behavior (20%)
+- Rude manager
+- Staff not helpful
+- Discrimination
+- Late opening/early closing
+
+Category 4: Cleanliness (10%)
+- Dusty tables
+- Dirty washrooms
+- Garbage not cleared
+- Bad smell
+```
+
+**Priority Levels:**
+
+```
+URGENT (Resolve in 2 hours):
+- AC not working in summer (students leaving)
+- Washroom blocked (health hazard)
+- Electricity issue (can't study)
+- Safety concern (broken chair, someone injured)
+
+HIGH (Resolve in 24 hours):
+- WiFi not working
+- Noise issue (multiple complaints)
+- Staff behavior (serious complaint)
+
+MEDIUM (Resolve in 3 days):
+- Cleanliness issue
+- Minor repairs
+- Facility improvement request
+
+LOW (Resolve in 1 week):
+- Suggestions
+- Feature requests
+- General feedback
+```
+
+**Complaint Workflow:**
+
+```
+Step 1: Student Submits Complaint
+- Form: Category, Description, Priority (auto-assigned)
+- Photo: Optional (evidence)
+- Anonymous: Option available
+
+Step 2: Manager Receives Alert
+- WhatsApp notification
+- Assign to staff (if needed)
+- Acknowledge receipt (within 1 hour)
+
+Step 3: Investigation
+- Visit location (if infrastructure)
+- Talk to student (if behavior)
+- Check CCTV (if needed)
+- Gather facts
+
+Step 4: Action
+- Fix immediately (if possible)
+- Schedule repair (if vendor needed)
+- Warn staff (if behavior issue)
+- Update student (progress report)
+
+Step 5: Resolution
+- Mark as resolved
+- Student confirmation (satisfied?)
+- Follow-up (after 1 week)
+
+Step 6: Owner Review
+- Weekly complaint summary
+- Pattern analysis (same issue repeat?)
+- Action on manager (if not resolved)
+```
+
+**Why Owner Needs This:**
+
+**Service Quality Monitoring:**
+```
+Weekly Report:
+- Total Complaints: 12
+- Resolved: 10 (83%)
+- Pending: 2 (17%)
+- Average Resolution Time: 18 hours
+
+By Category:
+- Infrastructure: 5 (AC issues)
+- Noise: 4
+- Staff: 2
+- Cleanliness: 1
+
+Action Required:
+- AC maintenance overdue (schedule immediately)
+- Noise policy enforcement (strict rules)
+- Staff training (customer service)
+```
+
+**Churn Prevention:**
+Agar complaints resolve nahi hote to:
+- 1 complaint = 20% churn risk
+- 2 complaints = 50% churn risk
+- 3+ complaints = 80% churn risk (student definitely jayega)
+
+**Real Case Study:**
+Mumbai library mein 3 mahine mein 15 students ne AC complaint ki. Owner ne ignore kiya (socha "garmi hai, sab complain karenge"). Result: 8 students ne admission cancel kar diya (₹9,600/month loss). Agar pehle complaint pe action liya hota to ₹5,000 mein AC repair ho jaata.
+
+---
+
+### 2. Notices & Announcements (`/owner/communication/notices`)
+
+### Kya hai yeh feature?
+Yeh **Mass Communication Tool** hai. Sab students ko ek saath message bhejo - holidays, fee reminders, new rules, events. WhatsApp, SMS, Email - sab channels.
+
+### Kyun chahiye yeh feature? (Operational Efficiency)
+
+**The Manual Messaging Problem:**
+Agar 100 students ko manually message karna ho to:
+- Time: 100 messages × 30 seconds = 50 minutes
+- Errors: Kuch students miss ho jate hain
+- Cost: Staff ka time waste
+- Inconsistency: Har student ko alag message (confusion)
+
+**Automated Notices:**
+- Time: 2 minutes (compose + send)
+- Errors: Zero (sab ko same message)
+- Cost: Minimal (WhatsApp Business API)
+- Consistency: Same message to all
+
+**Notice Types:**
+
+```
+Type 1: Holiday Notice (Urgent)
+- Message: "Library will be closed on 26th Jan (Republic Day). Regular timings from 27th Jan."
+- Audience: All students
+- Channels: WhatsApp + SMS
+- Timing: 3 days before
+
+Type 2: Fee Reminder (Important)
+- Message: "Your monthly fee of ₹1,200 is due on 1st Feb. Pay before 5th Feb to avoid late fees."
+- Audience: Students with pending fees
+- Channels: WhatsApp
+- Timing: 2 days before due date
+
+Type 3: New Rule (Announcement)
+- Message: "New policy: No phone calls inside library. Please use phone booth or step outside."
+- Audience: All students
+- Channels: WhatsApp + Notice Board
+- Timing: 1 week before implementation
+
+Type 4: Event Notification (Info)
+- Message: "Free mock test on Sunday 10 AM. Register at reception. Limited seats!"
+- Audience: All students
+- Channels: WhatsApp
+- Timing: 1 week before event
+
+Type 5: Emergency Alert (Critical)
+- Message: "Library closing early today (6 PM) due to maintenance. Sorry for inconvenience."
+- Audience: All students
+- Channels: WhatsApp + SMS + Call
+- Timing: Immediate
+```
+
+**Delivery Tracking:**
+
+```
+Notice: "Holiday on 26th Jan"
+- Sent: 100 students
+- Delivered: 98 students (2 phone numbers invalid)
+- Read: 85 students (87% read rate)
+- Replied: 5 students (questions)
+
+Action:
+- Update invalid phone numbers
+- Follow-up with unread students (call them)
+- Answer questions (FAQ)
+```
+
+**Why Owner Needs This:**
+
+**Operational Efficiency:**
+Pehle manager ko 100 students ko manually call karna padta tha (2-3 hours). Ab 2 minutes mein sab ko message.
+
+**Consistency:**
+Sab students ko same information milta hai. Koi confusion nahi.
+
+**Proof:**
+Agar koi student bole "Mujhe pata nahi tha holiday hai", to delivery report dikha sakte ho: "Aapko 23rd Jan ko message gaya tha, aapne read bhi kiya."
+
+**Real Use Case:**
+Diwali ke time owner ne notice bheja: "Library closed 12-14 Nov. Fees will be adjusted (3 days free)." 95 students ne read kiya. Phir bhi 5 students ne call karke pucha "Holiday hai kya?" Owner ne delivery report dikha di: "Aapko message gaya tha, aapne 13th Nov ko read bhi kiya."
+
+---
+
+## 👨‍👩‍👧‍👦 Family Management (`/owner/members/families`)
+
+### Kya hai yeh feature?
+Yeh **Family Discount System** hai. Agar ek family ke 2-3 members library mein hain (bhai-behen, cousins) to unko link karo aur discount do.
+
+### Kyun chahiye yeh feature? (Revenue & Retention)
+
+**The Family Opportunity:**
+Agar ek student satisfied hai to:
+- Uska bhai/behen bhi aayega (high conversion)
+- Family discount offer karo (retention strategy)
+- Word-of-mouth marketing (family friends ko bolenge)
+
+**Family Discount Structure:**
+
+```
+Scenario 1: 2 Siblings
+- Student 1: Rahul Kumar (₹1,200/month)
+- Student 2: Priya Kumar (₹1,200/month)
+- Total: ₹2,400/month
+
+With Family Discount (10%):
+- Student 1: ₹1,080/month
+- Student 2: ₹1,080/month
+- Total: ₹2,160/month
+- Discount: ₹240/month
+
+Owner's Calculation:
+- Revenue loss: ₹240/month
+- But retention increase: 2 students × 12 months = ₹25,920/year
+- Without discount: Risk of losing both (competitor offers family discount)
+```
+
+**Why Owner Needs to Verify (Fraud Prevention):**
+
+**Fraud Case 1: Fake Family**
+```
+Claim: "Hum dono bhai hain"
+Reality: Friends pretending to be brothers
+Evidence: Different surnames, different addresses, no resemblance
+Action: Reject family link, no discount
+
+How to Verify:
+- Ask for Aadhaar card (same parents' name)
+- Check addresses (should be same)
+- Interview separately (family details match?)
+```
+
+**Fraud Case 2: Staff Collusion**
+```
+Situation: Manager apne friends ko family discount de raha hai
+Impact: ₹240 × 10 fake families = ₹2,400/month loss
+Detection: Owner reviews family links monthly
+Action: Terminate manager, cancel fake discounts
+
+Prevention:
+- Owner approval required for family discount
+- Random verification (call parents)
+- Audit trail (who approved, when)
+```
+
+**Family Management Workflow:**
+
+```
+Step 1: Student Request
+- Form: "My brother also wants admission"
+- Details: Name, phone, relationship
+- Documents: Aadhaar, address proof
+
+Step 2: Manager Verification
+- Check documents
+- Interview both students
+- Confirm relationship
+- Recommend to owner
+
+Step 3: Owner Approval
+- Review documents
+- Check for fraud patterns
+- Approve/reject
+- Set discount % (5-15%)
+
+Step 4: System Link
+- Create family group
+- Apply discount to both
+- Track family revenue
+- Monitor retention
+
+Step 5: Ongoing Monitoring
+- If one leaves, other gets alert (retention call)
+- If both leave, analyze reason (dissatisfaction?)
+- If one refers more, increase discount (loyalty reward)
+```
+
+**Why This is Strategic:**
+
+**Customer Lifetime Value (CLV):**
+```
+Single Student:
+- Tenure: 6 months average
+- Revenue: 6 × ₹1,200 = ₹7,200
+- Referrals: 0
+
+Family (2 Students):
+- Tenure: 12 months average (higher retention)
+- Revenue: 12 × ₹2,160 = ₹25,920
+- Referrals: 1-2 (family friends)
+- Total CLV: ₹25,920 + (2 × ₹7,200) = ₹40,320
+
+ROI: ₹40,320 vs ₹7,200 = 5.6x higher!
+```
+
+**Real Case Study:**
+Pune library mein owner ne family discount program launch kiya. 3 mahine mein:
+- 15 families joined (30 students)
+- Discount cost: ₹3,600/month
+- But retention improved: 30 students × 12 months = ₹3,60,000/year
+- Referrals: 8 new students (₹9,600/month)
+- Net benefit: ₹1,15,200/year
+
+---
+
+## 🎟️ Coupons & Discounts (`/owner/settings/coupons`)
+
+### Kya hai yeh feature?
+Yeh **Promotional Campaign Manager** hai. Discount coupons create karo (DIWALI50, NEWYEAR20), validity set karo, usage limit set karo, track karo kitne log use kar rahe hain.
+
+### Kyun chahiye yeh feature? (Marketing & Sales)
+
+**The Seasonal Opportunity:**
+Festivals, exam season, summer vacation - yeh sab opportunities hain discount dene ki:
+- Attract new students (trial offer)
+- Retain existing students (loyalty discount)
+- Fill empty seats (off-season discount)
+- Beat competition (match their offers)
+
+**Coupon Types:**
+
+```
+Type 1: Percentage Discount
+- Code: DIWALI20
+- Discount: 20% off
+- Valid: 1-15 Nov 2024
+- Max Uses: 50
+- Used: 32
+- Revenue Impact: ₹7,680 discount given, ₹38,400 revenue generated
+
+Type 2: Fixed Amount Discount
+- Code: FIRST500
+- Discount: ₹500 off
+- Valid: For new students only
+- Max Uses: 100
+- Used: 67
+- Revenue Impact: ₹33,500 discount, ₹80,400 revenue (67 × ₹1,200)
+
+Type 3: Referral Bonus
+- Code: REFER100
+- Discount: ₹100 for referrer + ₹100 for referee
+- Valid: Ongoing
+- Max Uses: Unlimited
+- Used: 45
+- Revenue Impact: ₹9,000 discount, ₹54,000 revenue (45 × ₹1,200)
+
+Type 4: Seasonal Offer
+- Code: SUMMER30
+- Discount: 30% off (May-June only)
+- Valid: 1 May - 30 Jun
+- Max Uses: 30
+- Used: 28
+- Revenue Impact: ₹10,080 discount, ₹33,600 revenue
+```
+
+**Strategic Coupon Usage:**
+
+**Scenario 1: Low Occupancy (60%)**
+```
+Problem: 40 seats empty, ₹48,000/month revenue loss
+Solution: Aggressive discount
+- Code: FILL40
+- Discount: 40% off first month (₹1,200 → ₹720)
+- Target: New students only
+- Goal: Fill 20 seats minimum
+
+Result:
+- 25 students joined (₹18,000 first month)
+- 20 renewed at full price (₹24,000/month ongoing)
+- ROI: ₹12,000 discount cost, ₹24,000/month gain = 2x return
+```
+
+**Scenario 2: Competition Threat**
+```
+Problem: Competitor opened nearby, offering ₹999/month
+Solution: Match + Beat
+- Code: BEST999
+- Discount: First month ₹999 (₹201 off)
+- Quality Pitch: "Same price, better facilities"
+- Target: Competitor's potential customers
+
+Result:
+- 15 students chose us instead of competitor
+- 12 renewed at ₹1,200 (80% retention)
+- Competitor impact: Reduced their growth
+```
+
+**Scenario 3: Exam Season Boost**
+```
+Problem: Exam season (Jan-Mar), high demand
+Solution: Premium pricing (no discount needed)
+- Remove all discount codes
+- Increase price: ₹1,200 → ₹1,400
+- Reason: High demand, limited supply
+
+Result:
+- All 100 seats filled at ₹1,400
+- Revenue: ₹1,40,000/month (vs ₹1,20,000 normal)
+- Extra profit: ₹20,000/month × 3 = ₹60,000
+```
+
+**Why Owner Manages Coupons (Not Manager):**
+
+**Risk 1: Over-Discounting**
+Manager apne targets meet karne ke liye zyada discount de dega:
+- "50% off for everyone!" (revenue loss)
+- No strategy, just desperation
+
+**Risk 2: Fraud**
+Manager apne friends ko special codes de dega:
+- Unlimited use codes
+- 100% discount codes
+- Backdated validity
+
+**Risk 3: No ROI Tracking**
+Manager discount to de dega par track nahi karega:
+- Kitne students converted?
+- Kitne renewed?
+- Profitable tha ya loss?
+
+**Coupon Performance Tracking:**
+
+```
+Campaign: Diwali Discount (DIWALI20)
+- Budget: ₹20,000 discount
+- Actual Spent: ₹15,360 (32 uses × ₹480 avg)
+- Revenue Generated: ₹76,800 (32 × ₹1,200 × 2 months avg)
+- ROI: (76,800 - 15,360) / 15,360 = 400% return
+- Decision: SUCCESS - Repeat next year
+
+Campaign: Summer Offer (SUMMER30)
+- Budget: ₹15,000 discount
+- Actual Spent: ₹10,080 (28 uses × ₹360 avg)
+- Revenue Generated: ₹33,600 (28 × ₹1,200 × 1 month avg)
+- Retention: Only 8 renewed (29% retention)
+- ROI: (33,600 - 10,080) / 10,080 = 233% (but low retention)
+- Decision: MODIFY - Reduce discount to 20%, improve service
+```
+
+---
+
+## 🎯 Summary - Kyun Ye Sab Features Chahiye?
+
+### Owner Ki Problems:
+1. ❌ **Trust Issue:** Manager cash chura sakta hai
+2. ❌ **Visibility:** Branch mein nahi ja sakte har din
+3. ❌ **Staff Laziness:** Kaun kaam kar raha kaun nahi, pata nahi chalta
+4. ❌ **Money Waste:** Marketing mein paisa laga rahe par result nahi aa raha
+5. ❌ **No Data:** Gut feeling pe decisions le rahe, data nahi hai
+
+### Solution - Smart Library 360:
+1. ✅ **Anti-Theft:** Daily settlements with variance detection
+2. ✅ **Remote Monitoring:** Dashboard se sab kuch dekho
+3. ✅ **Performance Tracking:** Staff ka har action logged
+4. ✅ **ROI Analysis:** Har paisa ka hisaab
+5. ✅ **Data-Driven:** Sab decisions data pe based
+
+### Owner Ka Daily Routine (5 Minutes):
+1. Morning: Dashboard kholo → Profit check karo → Flagged settlements dekho
+2. Weekly: Staff performance dekho → Lazy staff ko warning do
+3. Monthly: P&L report dekho → Marketing ROI analyze karo → Next month ka budget plan karo
+
+**Result:** Owner tension-free, business profitable, fraud nahi ho sakta, staff accountable hai! 🚀
