@@ -112,10 +112,10 @@ export const mockStudents = [
     status: i % 10 === 0 ? 'suspended' : 'active',
     currentSeat: i % 3 === 0 ? null : `${String.fromCharCode(65 + Math.floor(i / 20))}-${String((i % 20) + 1).padStart(2, '0')}`,
     shift: i % 2 === 0 ? 'Morning' : 'Evening',
-    dueAmount: i % 5 === 0 ? Math.floor(Math.random() * 1000) : 0,
+    dueAmount: i % 5 === 0 ? (i * 100) % 1000 : 0,
     lateFeeApplicable: i % 5 === 0,
-    expiryDate: addDays(today, Math.floor(Math.random() * 30)).toISOString(),
-    trustScore: Math.floor(Math.random() * 5) + 1,
+    expiryDate: addDays(today, (i % 30) + 1).toISOString(),
+    trustScore: (i % 5) + 1,
     guardianPhone: i % 7 === 0 ? `+9198765432${String(i + 15).padStart(2, '0')}` : null,
     familyLinked: i % 7 === 0
   }))
@@ -175,7 +175,7 @@ export const mockSeats = Array.from({ length: 100 }, (_, i) => ({
   occupantName: i < 70 ? mockStudents[i % 5].name : null,
   expiry: i < 70 ? mockStudents[i % 5].expiryDate : null,
   lastOccupant: i >= 70 ? mockStudents[(i + 3) % 5].name : null,
-  availableSince: i >= 70 ? subDays(today, Math.floor(Math.random() * 10)).toISOString() : null,
+  availableSince: i >= 70 ? subDays(today, (i % 10) + 1).toISOString() : null,
   maintenanceReason: i >= 90 ? "Chair broken" : null,
   expectedAvailable: i >= 90 ? addDays(today, 2).toISOString() : null,
 }));
