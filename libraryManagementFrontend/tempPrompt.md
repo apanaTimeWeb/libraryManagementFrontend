@@ -1,46 +1,31 @@
-# 👑 SMART LIBRARY 360 – OWNER DASHBOARD MASTER PROMPT
+# 👔 SMART LIBRARY 360 – OPERATIONS CONSOLE (MANAGER & STAFF) MASTER PROMPT
 
-**Copy this entire prompt into Bolt.new, Lovable, Stitch, or v0** to generate a complete, production‑ready frontend for the **Owner** role. This prompt includes **every feature**, **every page**, **every modal**, and **every component** with **hardcoded mock data** so you can test live immediately. No backend required – all data is simulated.
+**Copy this entire prompt into Bolt.new, Lovable, or v0** to generate a complete, production‑ready frontend for **Managers & Staff**. This prompt includes **every operational feature**, **every page**, **every modal**, and **every component** with **hardcoded mock data** so you can test live immediately. No backend required – all data is simulated.
 
 ---
 
 ## 📋 PROJECT OVERVIEW
 
-**Project Name**: Smart Library 360 – Owner Dashboard  
-**Role**: **Owner** (full control over one branch)  
-**Target Audience**: Library owners managing a single location.  
-**Purpose**: Monitor revenue, staff integrity, operational efficiency, and manage branch settings.
+**Project Name**: Smart Library 360 – Operations Console  
+**Target Users**:  
+- **Manager**: Full operational control (can override late fees, handle refunds, perform EOD settlement)  
+- **Staff**: Daily operations (collect fees, mark attendance, add leads, manage complaints)  
+- **Role-Based UI**: A toggle in the topbar switches between Manager and Staff views (for demo purposes)
 
-**Owner Permissions** (from backend Service 1):
-- ✅ Full access to their branch data
-- ✅ View all financials (revenue, expenses, P&L, daily settlements)
-- ✅ Create/update subscription plans and coupons
-- ✅ Create/update **Managers** and **Staff** (users)
-- ✅ Access all operational data (students, seats, attendance – read‑only)
-- ✅ View reports and analytics
-- ✅ Manage branch settings (shifts, fees, rules)
-- ✅ Bulk import, ID card generation, asset management
-- ✅ View audit logs (for fraud detection)
-- ❌ **Cannot** assign seats (Manager does this)
-- ❌ **Cannot** mark daily attendance (Staff/Manager do this)
-- ❌ **Cannot** create other Owners (only SuperAdmin)
-- ❌ **Cannot** delete branch (only SuperAdmin)
+**Backend Services Covered**: 3,4,5,6,7,8,9,10,11,12,13,16,17,18,19,20,21,22,24,26 (Admissions, Fees, Attendance, CRM, Daily Ops, etc.)
 
 **Design System**:
-- **Colors**: Slate (900‑50), Indigo (600,500,400,300,100), White.  
-  Status: `green` (success/available), `red` (danger/occupied), `orange` (warning/maintenance), `yellow` (expiring), `blue` (info), `red-600` (critical/fraud), `emerald-600` (profit/safe)
+- **Colors**: Slate-50 background, White cards. Primary: Blue-600. Alert colors: Red (dues/absent/occupied), Orange (unallocated/PTP/maintenance), Green (paid/present/available).
 - **Typography**: Inter (system fallback)
 - **Spacing**: 4px base (Tailwind spacing)
-- **Border radius**: `6px` (medium), `8px` (cards)
-- **Shadows**: `shadow-sm`, `shadow-md`
-- **Components**: Shadcn UI (latest) + custom enterprise components
-- **Icons**: Lucide React (sizes 16,20,24)
-- **Tables**: TanStack Table v8 (sorting, filtering, pagination)
-- **Charts**: Recharts (line, bar, pie, area)
+- **Border radius**: 6px (medium), 8px (cards)
+- **Components**: Shadcn UI (latest) – Cards, Dialogs, Tables, Toasts, Badges, Switch, Select, Tabs, Sheet
+- **Icons**: Lucide React
+- **Tables**: TanStack Table v8
+- **Charts**: Recharts (for dashboard)
 - **Forms**: React Hook Form + Zod
 - **Date handling**: date‑fns
 - **Notifications**: Sonner toasts
-- **Dialogs**: Shadcn Dialog
 
 **Tech Stack** (mandatory):
 ```
@@ -52,724 +37,532 @@ TanStack Table v8
 Recharts
 React Hook Form + Zod
 Lucide React
-Axios (for future API integration, but use mock data now)
-Socket.io‑client (simulated with setInterval)
+Axios (mock for now)
 date‑fns
 ```
 
 ---
 
-## 🧱 MOCK DATA STORE (`lib/mockData.ts`)
+## 🧠 MOCK DATA STORE (`lib/opsData.ts`)
 
-Create a TypeScript file exporting all mock data. This data must be **realistic and comprehensive** to power every screen. Use arrays with at least 5‑10 items each, but for tables (students, payments) generate 50+ items using loops.
+Create a TypeScript file exporting all mock data. This data must cover all operational edge cases.
 
 ```typescript
-// lib/mockData.ts
-import { subDays, format } from 'date-fns';
+// lib/opsData.ts
+import { subDays, addDays, format } from 'date-fns';
 
-// Helper to generate dates
 const today = new Date();
-const yesterday = subDays(today, 1);
-const lastWeek = subDays(today, 7);
 
-// Branch (single, owner's branch)
-export const mockBranch = {
-  id: "branch-1",
-  name: "Smart Library - Connaught Place",
-  address: "1st Floor, Connaught Place, New Delhi - 110001",
-  gstNumber: "07AAACH7409R1ZN",
-  panNumber: "AAACH7409R",
-  contactNumber: "+911123456789",
-  email: "cp@smartlibrary360.com",
-  capacity: 100,
-  shifts: {
-    morning: { start: "06:00", end: "12:00" },
-    evening: { start: "12:00", end: "22:00" }
+// Students (50+ records)
+export const mockStudents = [
+  {
+    id: "s1",
+    smartId: "LIB001",
+    name: "Rahul Sharma",
+    phone: "+919876543210",
+    parentPhone: "+919123456789",
+    email: "rahul@gmail.com",
+    college: "DU",
+    photoUrl: "/mock/avatar1.png",
+    status: "active",
+    currentSeat: "A-15",
+    shift: "Morning",
+    dueAmount: 500,
+    lateFeeApplicable: true,
+    expiryDate: addDays(today, 10).toISOString(),
+    trustScore: 3,
+    guardianPhone: null,
+    familyLinked: false
   },
-  securityDeposit: 500,
-  lateFeePerDay: 50,
-  gracePeriodDays: 5,
-  lockerMonthlyFee: 200,
-  absenteeAlertDays: 3,
-  monthlyBudget: {
-    rent: 45000,
-    utilities: 15000,
-    salaries: 35000,
-    maintenance: 10000,
-    marketing: 8000
-  }
-};
+  {
+    id: "s2",
+    smartId: "LIB002",
+    name: "Sneha Gupta",
+    phone: "+919876543211",
+    parentPhone: "+919123456780",
+    email: "sneha@gmail.com",
+    college: "JMI",
+    photoUrl: "/mock/avatar2.png",
+    status: "active",
+    currentSeat: null,
+    shift: "Evening",
+    dueAmount: 0,
+    lateFeeApplicable: false,
+    expiryDate: addDays(today, 5).toISOString(),
+    trustScore: 5,
+    guardianPhone: null,
+    familyLinked: false
+  },
+  {
+    id: "s3",
+    smartId: "LIB003",
+    name: "Amit Kumar",
+    phone: "+919876543212",
+    parentPhone: "+919123456781",
+    email: "amit@gmail.com",
+    college: "DU",
+    photoUrl: "/mock/avatar3.png",
+    status: "active",
+    currentSeat: "B-08",
+    shift: "Morning",
+    dueAmount: 0,
+    lateFeeApplicable: false,
+    expiryDate: addDays(today, 2).toISOString(),
+    trustScore: 4,
+    guardianPhone: "+919876543212",
+    familyLinked: true
+  },
+  {
+    id: "s4",
+    smartId: "LIB004",
+    name: "Priya Kapoor",
+    phone: "+919876543213",
+    parentPhone: "+919123456782",
+    email: "priya@gmail.com",
+    college: "Amity",
+    photoUrl: "/mock/avatar4.png",
+    status: "active",
+    currentSeat: "B-09",
+    shift: "Evening",
+    dueAmount: 200,
+    lateFeeApplicable: true,
+    expiryDate: addDays(today, 15).toISOString(),
+    trustScore: 2,
+    guardianPhone: null,
+    familyLinked: false
+  },
+  {
+    id: "s5",
+    smartId: "LIB005",
+    name: "Rohit Mehra",
+    phone: "+919876543214",
+    parentPhone: "+919123456783",
+    email: "rohit@gmail.com",
+    college: "DU",
+    photoUrl: "/mock/avatar5.png",
+    status: "suspended",
+    currentSeat: "C-01",
+    shift: "Morning",
+    dueAmount: 1000,
+    lateFeeApplicable: true,
+    expiryDate: subDays(today, 5).toISOString(),
+    trustScore: 1,
+    guardianPhone: null,
+    familyLinked: false
+  },
+  // ... more (generate 50+ with variations)
+];
 
-// Plans
-export const mockPlans = [
-  { id: "plan-1", name: "Monthly Basic", durationDays: 30, price: 800, features: ["AC", "WiFi"], planType: "basic", studentsCount: 45, isActive: true },
-  { id: "plan-2", name: "Monthly Premium", durationDays: 30, price: 1200, features: ["AC", "Locker", "WiFi", "Printing"], planType: "premium", studentsCount: 78, isActive: true },
-  { id: "plan-3", name: "Quarterly Premium", durationDays: 90, price: 3200, features: ["AC", "Locker", "WiFi", "Printing"], planType: "premium", studentsCount: 32, isActive: true },
-  { id: "plan-4", name: "Yearly Basic", durationDays: 365, price: 8000, features: ["AC", "WiFi"], planType: "basic", studentsCount: 12, isActive: false },
+// Enquiries (leads)
+export const mockEnquiries = [
+  { id: "e1", name: "Neha Singh", phone: "+919988776655", source: "walk_in", status: "new", followUpDate: today.toISOString(), lastMessageSent: null },
+  { id: "e2", name: "Arjun Reddy", phone: "+919988776656", source: "google_ads", status: "interested", followUpDate: addDays(today, 2).toISOString(), lastMessageSent: "Welcome Offer" },
+  // ...
 ];
 
 // Coupons
 export const mockCoupons = [
-  { id: "coupon-1", code: "NEWYEAR50", discountType: "fixed", discountValue: 50, validFrom: "2024-01-01", validTill: "2024-01-31", maxUses: 100, usedCount: 23, minOrderAmount: 500, applicablePlans: "all", isActive: true },
-  { id: "coupon-2", code: "STUDENT20", discountType: "percent", discountValue: 20, validFrom: "2024-02-01", validTill: "2024-03-01", maxUses: 50, usedCount: 12, minOrderAmount: 0, applicablePlans: ["plan-2", "plan-3"], isActive: true },
+  { id: "c1", code: "NEWYEAR50", discountType: "fixed", discountValue: 50, validFrom: subDays(today, 10).toISOString(), validTill: addDays(today, 20).toISOString(), maxUses: 100, usedCount: 23, minOrderAmount: 500, applicablePlans: "all", isActive: true },
+  { id: "c2", code: "STUDENT10", discountType: "percent", discountValue: 10, validFrom: subDays(today, 5).toISOString(), validTill: addDays(today, 30).toISOString(), maxUses: 50, usedCount: 12, minOrderAmount: 0, applicablePlans: ["Monthly Premium"], isActive: true },
 ];
 
-// Users (Managers & Staff)
-export const mockUsers = [
-  { id: "user-1", name: "Vikram Singh", phone: "+919876543211", email: "vikram@smartlibrary.com", role: "manager", status: "active", lastLogin: "2024-01-27T10:30:00Z", permissions: ["manage_students", "collect_fees", "view_reports"] },
-  { id: "user-2", name: "Priya Sharma", phone: "+919876543212", email: "priya@smartlibrary.com", role: "staff", status: "active", lastLogin: "2024-01-27T09:15:00Z", permissions: ["collect_fees", "mark_attendance"] },
-  { id: "user-3", name: "Rahul Gupta", phone: "+919876543213", email: "rahul@smartlibrary.com", role: "staff", status: "inactive", lastLogin: "2024-01-20T08:00:00Z", permissions: ["mark_attendance"] },
-];
+// Shifts
+export const mockShiftTimes = {
+  morning: { start: "06:00", end: "14:00" },
+  evening: { start: "14:00", end: "22:00" }
+};
 
-// Students (generate 50+)
-export const mockStudents = Array.from({ length: 50 }, (_, i) => ({
-  id: `student-${i+1}`,
-  smartId: `LIB${String(i+1).padStart(3, '0')}`,
-  name: `Student ${i+1}`,
-  phone: `+9198765432${String(i).padStart(2, '0')}`,
-  parentPhone: `+9191234567${String(i).padStart(2, '0')}`,
-  email: `student${i+1}@gmail.com`,
-  college: i % 3 === 0 ? "Delhi University" : i % 3 === 1 ? "Jamia Millia" : "Amity University",
-  photoUrl: `/mock/avatar-${(i%5)+1}.png`,
-  status: i % 10 === 0 ? "suspended" : "active",
-  currentSeat: `A-${(i%20)+1}`,
-  shift: i % 2 === 0 ? "Morning" : "Evening",
-  dueAmount: i % 7 === 0 ? 500 : 0,
-  expiryDate: i % 5 === 0 ? subDays(today, 5).toISOString() : subDays(today, -10).toISOString(),
-  trustScore: i % 5, // 0-4
-  family: i % 10 === 0 ? { sharedPhone: "+919876543210", relationships: [{ studentId: `student-${i+2}`, type: "brother" }] } : null,
-}));
-
-// Seats
+// Seats (100)
 export const mockSeats = Array.from({ length: 100 }, (_, i) => ({
   id: i+1,
-  number: `A-${String(i+1).padStart(2, '0')}`,
+  number: `${String.fromCharCode(65 + Math.floor(i/20))}-${String(i%20+1).padStart(2,'0')}`,
   status: i < 70 ? "occupied" : i < 90 ? "available" : "maintenance",
-  occupant: i < 70 ? mockStudents[i % 50].id : null,
-  occupantName: i < 70 ? mockStudents[i % 50].name : null,
-  expiry: i < 70 ? mockStudents[i % 50].expiryDate : null,
-  lastOccupant: i >= 70 ? mockStudents[(i+5) % 50].name : null,
+  occupantId: i < 70 ? mockStudents[i % 5].id : null,
+  occupantName: i < 70 ? mockStudents[i % 5].name : null,
+  expiry: i < 70 ? mockStudents[i % 5].expiryDate : null,
+  lastOccupant: i >= 70 ? mockStudents[(i+3) % 5].name : null,
   availableSince: i >= 70 ? subDays(today, Math.floor(Math.random()*10)).toISOString() : null,
-  maintenanceReason: i >= 90 ? "Chair repair" : null,
-  expectedAvailable: i >= 90 ? subDays(today, -2).toISOString() : null,
+  maintenanceReason: i >= 90 ? "Chair broken" : null,
+  expectedAvailable: i >= 90 ? addDays(today, 2).toISOString() : null,
 }));
 
-// Payments (100+ items)
-export const mockPayments = Array.from({ length: 120 }, (_, i) => ({
-  id: `pay-${i+1}`,
-  studentId: mockStudents[i % 50].id,
-  studentName: mockStudents[i % 50].name,
-  amount: [500, 800, 1200, 3200][i % 4],
-  mode: ["cash", "upi", "card"][i % 3],
-  date: subDays(today, Math.floor(Math.random()*30)).toISOString(),
-  receivedBy: mockUsers[i % 3].name,
+// Lockers
+export const mockLockers = Array.from({ length: 30 }, (_, i) => ({
+  id: i+1,
+  number: `L-${String(i+1).padStart(2,'0')}`,
+  status: i < 20 ? "occupied" : i < 25 ? "available" : "maintenance",
+  occupantId: i < 20 ? mockStudents[i % 5].id : null,
+  occupantName: i < 20 ? mockStudents[i % 5].name : null,
+  monthlyFee: 200,
+  keyNumber: `KEY-${i+1}`,
 }));
 
-// Enquiries
-export const mockEnquiries = [
-  { id: "enq-1", name: "Priya Sharma", phone: "+919988776655", source: "walk_in", status: "interested", daysOld: 3, assignedTo: "Vikram Singh", followUpDate: subDays(today, -2).toISOString() },
-  { id: "enq-2", name: "Rahul Verma", phone: "+919988776656", source: "google_ads", status: "new", daysOld: 1, assignedTo: "Priya Sharma", followUpDate: subDays(today, -1).toISOString() },
-  // ... more
-];
-
-// PTPs (Promise to Pay)
+// PTPs
 export const mockPTPs = [
-  { id: "ptp-1", studentId: "student-2", studentName: "Rahul Verma", amount: 450, promisedDate: subDays(today, 2).toISOString(), trustScore: 3, daysOverdue: 2, fulfilled: false, timesChanged: 1 },
-  { id: "ptp-2", studentId: "student-5", studentName: "Neha Gupta", amount: 800, promisedDate: subDays(today, -3).toISOString(), trustScore: 5, daysOverdue: 0, fulfilled: true, timesChanged: 0 },
-  // ... more
+  { id: "p1", studentId: "s1", studentName: "Rahul Sharma", amount: 500, promisedDate: addDays(today, 3).toISOString(), trustScore: 3, daysOverdue: 0, fulfilled: false, timesChanged: 0 },
+  { id: "p2", studentId: "s4", studentName: "Priya Kapoor", amount: 200, promisedDate: subDays(today, 2).toISOString(), trustScore: 2, daysOverdue: 2, fulfilled: false, timesChanged: 1 },
 ];
 
 // Complaints
 export const mockComplaints = [
-  { id: "comp-1", number: "CMP-001", title: "AC not working", category: "infrastructure", priority: "high", student: "Amit Kumar", isAnonymous: false, createdDate: subDays(today, 2).toISOString(), daysOpen: 2, status: "open" },
-  { id: "comp-2", number: "CMP-002", title: "Noisy environment", category: "noise", priority: "medium", student: null, isAnonymous: true, createdDate: subDays(today, 5).toISOString(), daysOpen: 5, status: "in_progress" },
-  // ... more
+  { id: "c1", number: "CMP-001", title: "AC not cooling", category: "infrastructure", priority: "high", studentName: "Rahul Sharma", isAnonymous: false, createdDate: subDays(today, 2).toISOString(), daysOpen: 2, status: "open" },
+  { id: "c2", number: "CMP-002", title: "Noise disturbance", category: "noise", priority: "medium", studentName: null, isAnonymous: true, createdDate: subDays(today, 1).toISOString(), daysOpen: 1, status: "in_progress" },
 ];
 
-// Notices
-export const mockNotices = [
-  { id: "notice-1", title: "Holiday on Holi", priority: "important", sentDate: subDays(today, 7).toISOString(), target: "all", deliveryRate: 98 },
-  { id: "notice-2", title: "New WiFi password", priority: "general", sentDate: subDays(today, 2).toISOString(), target: "morning", deliveryRate: 85 },
-  // ... more
+// Expenses
+export const mockExpenses = [
+  { id: "e1", date: subDays(today, 1).toISOString(), category: "Maintenance", amount: 500, vendor: "Cool Care", paymentMode: "cash", receipt: "/mock/receipt1.jpg" },
+  { id: "e2", date: subDays(today, 2).toISOString(), category: "Utilities", amount: 3000, vendor: "BSES", paymentMode: "bank", receipt: null },
 ];
 
-// Assets
-export const mockAssets = [
-  { id: "asset-1", name: "Split AC - 1.5 Ton", category: "HVAC", model: "Voltas 183V", purchaseDate: "2023-12-01", purchaseAmount: 65000, warrantyExpiry: "2025-12-01", status: "working", nextMaintenance: "2024-06-01" },
-  { id: "asset-2", name: "Office Chair", category: "Furniture", model: "ErgoPlus", purchaseDate: "2023-06-01", purchaseAmount: 5000, warrantyExpiry: "2024-06-01", status: "maintenance", nextMaintenance: "2024-02-15" },
-  // ... more
+// Recent Activity (for dashboard)
+export const mockRecentActivity = [
+  { id: "a1", action: "Fee collected from Rahul Sharma", amount: 500, timestamp: subDays(today, 1).toISOString(), user: "Vikram" },
+  { id: "a2", action: "Seat A-15 assigned to Sneha Gupta", timestamp: subDays(today, 1).toISOString(), user: "Priya" },
 ];
 
-// Daily Settlements
-export const mockSettlements = [
-  { id: "settle-1", date: yesterday.toISOString(), settledBy: "Vikram Singh", systemCalc: 12500, actualCash: 12500, variance: 0, status: "Balanced", evidence: "/mock/slip1.jpg", notes: "All good" },
-  { id: "settle-2", date: subDays(today, 2).toISOString(), settledBy: "Priya Sharma", systemCalc: 9800, actualCash: 9300, variance: -500, status: "Flagged", evidence: "/mock/slip2.jpg", notes: "Short by 500, will check tomorrow" },
+// Blacklist
+export const mockBlacklist = [
+  { id: "b1", phone: "+919876543999", name: "Ravi Kumar", reason: "Non-payment and aggression", severity: "high", addedBy: "Vikram", addedDate: subDays(today, 30).toISOString() },
 ];
 
-// Audit Logs
-export const mockAuditLogs = [
-  { id: "audit-1", timestamp: subDays(today, 1).toISOString(), user: "Vikram Singh", action: "DELETE_PAYMENT", entity: "Payment", details: "Deleted ₹500 cash receipt #123", severity: "Critical", ip: "192.168.1.100" },
-  { id: "audit-2", timestamp: subDays(today, 2).toISOString(), user: "Priya Sharma", action: "MANUAL_DISCOUNT", entity: "Subscription", details: "Applied 10% discount to student LIB045", severity: "Medium", ip: "192.168.1.101" },
-  // ... more
-];
+// Today's collection (for dashboard)
+export const mockTodayCollection = 15000;
 
-// Waitlist
-export const mockWaitlist = [
-  { id: "wait-1", name: "Rohit Mehra", phone: "+919876543220", preferredShift: "Morning", joinedDate: subDays(today, 5).toISOString(), status: "Waiting", potentialRevenue: 1200 },
-  { id: "wait-2", name: "Anjali Kapoor", phone: "+919876543221", preferredShift: "Evening", joinedDate: subDays(today, 3).toISOString(), status: "Waiting", potentialRevenue: 800 },
-  // ... more
-];
+// Occupancy
+export const mockOccupancy = { occupied: 85, total: 100 };
 
-// Staff Performance (for charts)
-export const mockStaffPerformance = [
-  { name: "Vikram Singh", revenue: 120000, conversions: 15, attendanceMarked: 450 },
-  { name: "Priya Sharma", revenue: 45000, conversions: 8, attendanceMarked: 320 },
-  { name: "Rahul Gupta", revenue: 23000, conversions: 4, attendanceMarked: 180 },
-];
+// Present now
+export const mockPresentNow = 42;
 
-// Daily revenue for chart
-export const mockDailyRevenue = Array.from({ length: 30 }, (_, i) => ({
-  date: format(subDays(today, 29-i), 'yyyy-MM-dd'),
-  amount: Math.floor(Math.random() * 15000) + 5000,
-}));
+// Plans (for admission)
+export const mockPlans = [
+  { id: "p1", name: "Monthly Basic", price: 800, durationDays: 30, features: ["AC", "WiFi"], isActive: true },
+  { id: "p2", name: "Monthly Premium", price: 1200, durationDays: 30, features: ["AC", "Locker", "WiFi", "Printing"], isActive: true },
+];
 ```
 
 ---
 
-## 🧭 GLOBAL LAYOUT (OWNER-SPECIFIC)
+## 🧭 NAVIGATION & LAYOUT
 
-### Sidebar (Left, collapsible)
+### Global Layout (Ops Console)
 
-**Logo**: Smart Library 360 + role badge "👑 OWNER" (blue background).
-
-**Navigation groups** (all icons from Lucide React):
-
-1. **Dashboard**  
-   - `Home` – Overview (`/dashboard`)
-
-2. **Settings**  
-   - `Settings` – Branch Settings (`/settings/branch`)  
-   - `Package` – Plan Manager (`/settings/plans`)  
-   - `Ticket` – Coupon Manager (`/settings/coupons`)  
-   - `Users` – User Management (`/settings/users`)
-
-3. **Finance**  
-   - `Receipt` – Expenses (`/finance/expenses`)  
-   - `Wallet` – Daily Settlements (`/finance/settlements`)  
-   - `BarChart3` – Reports (`/finance/reports`)
-
-4. **Admin Tools**  
-   - `Wrench` – Assets & Maintenance (`/admin/assets`)  
-   - `IdCard` – ID Card Generator (`/admin/id-cards`)  
-   - `Upload` – Bulk Import (`/admin/import`)  
-   - `Shield` – Audit Logs (`/admin/audit`)
-
-5. **Members**  
-   - `UserCircle` – Student Directory (`/members/directory`)  
-   - `Heart` – Family Management (`/members/families`)  
-   - `Clock` – Waitlist (`/members/waitlist`)  
-   - `Ban` – Blacklist (`/members/blacklist`)  
-   - `GraduationCap` – Alumni (`/members/alumni`)
-
-6. **Communication**  
-   - `Megaphone` – Notices (`/communication/notices`)  
-   - `MessageSquare` – Complaints (`/communication/complaints`)
-
-**Bottom of sidebar**:  
-- Current branch name + status indicator (active).  
-- Collapse/expand toggle.
-
-### Topbar (Fixed)
-
-- **Breadcrumb** (e.g., Dashboard / Finance / Expenses)
-- **Global search** (debounced) – searches students, enquiries, payments (using mock data)
-- **Notifications drawer** (bell icon with badge):
-  - Overdue PTPs count
-  - New complaints count
-  - Flagged settlements count
-  - Waitlist openings count
-- **User dropdown**:
-  - Profile (name, email, role)
-  - Settings (shortcut to `/settings/branch`)
-  - Logout (simulated toast)
+- **Sidebar** (Left, collapsible) – same as Owner but with operational modules:
+  - Dashboard (`/`)
+  - Admissions (`/students`) – Student Directory & New Admission
+  - Fees (`/fees`) – Fee Collection & Dues Manager
+  - Attendance (`/attendance`) – Mark In/Out & Absentee List
+  - CRM (`/crm`) – Leads & Messaging
+  - Daily Ops (`/ops`) – Lockers, Complaints, Expenses, Assets, EOD Settlement (Manager only)
+- **Topbar**:
+  - Role toggle (Manager/Staff) – changes available actions
+  - Notifications bell (simulated)
+  - User dropdown (Profile, Logout)
+- **Main Content Area**: p-6, bg-slate-50
 
 ---
 
-## 🏠 1. DASHBOARD (`/dashboard`)
+## ⚡ 1. DASHBOARD (`/`)
 
-**Layout**: 3-Row Grid.
+**Purpose**: Immediate visibility of pending tasks and quick stats.
 
-### Row 1 – Strategic KPIs (4 cards)
+### Top Row – Critical Lists (Actionable Cards)
 
-| Card | Mock Data Source | Visual |
-|------|------------------|--------|
-| **Monthly Revenue** | Sum of `mockPayments` where date in current month | ₹125,000 (target ₹150,000) with progress bar, icon `CreditCard` |
-| **Active Students** | Count of `mockStudents` with status 'active' | 85 / 100 capacity, icon `Users` |
-| **Cash in Hand (Today)** | From `mockSettlements` latest entry (systemCalc) | ₹12,500, icon `Wallet` |
-| **Flagged Settlements** | Count of `mockSettlements` with status 'Flagged' | 1 (red card), icon `AlertTriangle`, click opens `/finance/settlements` |
+| Card | Data Source | Actions |
+|------|-------------|---------|
+| **⚠️ Dues Pending** | Students with `dueAmount > 0` | List each with name, amount, "Collect Fee" button (opens fee modal) |
+| **🪑 Unallocated Students** | Students with `status='active'` and `currentSeat = null` | List each with name, "Assign Seat" button (opens seat assignment modal) |
+| **📞 Leads to Call** | Enquiries where `followUpDate == today` | List each with name, phone, "Call" (simulate call), "Message" (open WhatsApp template) |
 
-**Click Actions**:
-- Click on any card → navigate to relevant page (e.g., Monthly Revenue → `/finance/reports`)
+### Middle Row – Quick Stats (3 cards)
 
-### Row 2 – Analytics (2 columns)
+- **Today's Collection**: ₹15,000 (from `mockTodayCollection`) – updates when fee collected.
+- **Occupancy**: 85/100 – progress bar.
+- **Present Now**: 42 students – live (can be updated via attendance).
 
-**Left (60%) – Revenue Trend Chart**  
-- AreaChart using `mockDailyRevenue` (last 30 days).  
-- X‑axis: date, Y‑axis: amount.  
-- Tooltip shows date and amount.  
-- Toggle between "Daily" and "Cumulative".
+### Bottom Row – Recent Activity Feed
 
-**Right (40%) – Staff Leaderboard**  
-- BarChart using `mockStaffPerformance` (revenue per staff).  
-- Click bar → opens modal with staff details (name, total collections, conversions).
+- List of last 5 actions from `mockRecentActivity` (timestamp, action, user).
+- Auto‑refresh on new actions.
 
-### Row 3 – Operational Snapshot (3 columns)
+### Quick Actions FAB (Floating Action Button)
 
-**Left (33%) – Mini Seat Matrix (10×10 grid)**  
-- Grid cells (12×12 px) with status colours:  
-  - Green: available (mockSeats where status='available')  
-  - Red: occupied (status='occupied')  
-  - Orange: maintenance (status='maintenance')  
-  - Yellow: expiring (occupant expiry < 3 days)  
-- Tooltip on hover: seat number, student name (if occupied), expiry.  
-- Click → navigate to read-only seat view (no assignment).
-
-**Middle (33%) – Recent Audit Alerts**  
-- List last 3 `mockAuditLogs` with severity 'Critical' or 'High'.  
-- Each item: timestamp, user, action (bold), severity badge.  
-- Click item → open audit log detail modal.
-
-**Right (33%) – Waitlist Summary**  
-- Card: "Potential Revenue: ₹5,000" (sum of `mockWaitlist` potentialRevenue).  
-- List top 3 waitlisted names with shift.  
-- "View All" link → navigate to `/members/waitlist`.
+- `+ New Admission` – opens Admission Wizard.
+- `📷 Mark In/Out` – opens scanner modal (quick ID input).
 
 ---
 
-## ⚙️ 2. SETTINGS MODULE
+## 🎓 2. ADMISSIONS & STUDENT MANAGEMENT (`/students`)
 
-### 2.1 Branch Settings (`/settings/branch`)
+### A. Student Directory (Table – TanStack)
 
-**Tabs**:
+**Columns**:
+- Smart ID (with gap‑filled badge if applicable)
+- Name (click to open profile drawer)
+- Seat Number (or "Unallocated" badge)
+- Shift (Morning/Evening)
+- Due Amount (red if >0)
+- Status (badge: active/suspended)
+- Actions: "Collect Fee", "Assign Seat", "Generate ID Card"
 
-**Tab 1: General Information** (read‑only, from `mockBranch`)  
-- Name, Address, GST, PAN, Contact, Email, Capacity.
+**Filters** (above table):
+- "Has Dues"
+- "No Seat Assigned"
+- "Shift" (Morning/Evening)
+- "Status" (Active/Suspended)
 
-**Tab 2: Operating Hours** (editable)  
-- Morning shift: start time (06:00), end time (12:00) – time pickers.  
-- Evening shift: start time (12:00), end time (22:00) – time pickers.  
-- "Enable Hybrid Scheduling" toggle.
+**Row Click**: Opens **Student Profile Drawer** with tabs:
+- **Info**: Personal details, photo, documents (view links)
+- **Family Tree**: If family linked, show tree with guardian icon; else show "Add to Family" button.
+- **Payment History**: Table of past payments.
+- **Attendance Log**: Calendar view of attendance.
 
-**Tab 3: Fee Rules** (editable)  
-- Security deposit amount (number, default 500)  
-- Late fee per day (number, default 50)  
-- Grace period (days, default 5)  
-- Locker monthly fee (number, default 200)  
-- Absentee alert after (days, default 3)
+**Actions in Profile**:
+- "Generate ID Card" (Service 16) – single PDF download.
+- "Suspend/Reactivate" – toggle status.
+- "Exit" – opens refund modal (Service 24) – Manager only.
 
-**Tab 4: Holiday Calendar**  
-- List of holidays (date, reason, annual toggle) from mock data (create a small array).  
-- "Add Holiday" button → modal with date picker, reason, "Recurring annually" checkbox.
+### B. Admission Wizard (Modal)
 
-**Tab 5: Notifications**  
-- Parent alert after X absences (slider, min 1 max 10)  
-- Renewal reminder days before expiry (slider, default 7)  
-- PTP reminder schedule (dropdown: daily, every 3 days, weekly)
-
-**Save button** – shows toast "Settings updated successfully" and updates local state.
-
-### 2.2 Plan Manager (`/settings/plans`)
-
-**Table** (TanStack):
-- Columns: Name, Duration (days), Price (₹), Features (icons), Students Count, Status (toggle), Actions (Edit, Deactivate).
-- Sorting on Name, Price, Students.
-- Filter by Status (Active/Inactive).
-
-**"Add Plan" Modal** (Service 20.1):
+**Step 1: Personal Details**
 - Name (text, required)
-- Description (textarea, optional)
-- Duration (days, number, required)
-- Price (number, required)
-- Features (multi‑select: "AC", "Locker", "WiFi", "Printing", "Extended Hours")
-- Plan type (radio: basic, premium)
-- Max students (number, optional)
-- Discount percent (number, optional)
-- Active (toggle, default true)
-- Zod validation: name min 3 chars, price > 0, duration > 0.
+- Phone (E.164, real‑time duplicate check)
+- Parent Phone (optional)
+- Email (optional)
+- College (optional)
+- Photo upload (file)
+- Documents upload (Aadhar, ID proof)
+- **On phone blur**: Check against `mockBlacklist` – if found, block with message "Phone blacklisted".
 
-**"Edit Plan" Modal** – pre-filled with existing data, same fields.
+**Step 2: Seat & Shift**
+- Shift selection (radio: Morning, Evening, Hybrid)
+- If Hybrid, show custom slot builder (day checkboxes, time pickers)
+- Seat matrix (visual grid, colour‑coded) – click to select
+- Conflict detection: show warning if seat occupied for selected time
 
-**Deactivate** – confirmation dialog, then set `isActive` to false in mock data.
+**Step 3: Plan & Discount**
+- Plan selection (cards with price, features)
+- Coupon input + "Validate" button (check against `mockCoupons`)
+- Group discount toggle (if multiple admissions, but wizard is single; can note for future)
 
-### 2.3 Coupon Manager (`/settings/coupons`)
+**Step 4: Family Link**
+- "Add Sibling?" toggle
+- If yes, search existing student to link (relationship dropdown)
+- "Set as Guardian" checkbox (auto‑mark dependents)
+
+**Step 5: Payment**
+- Security deposit amount (from branch settings, editable)
+- Total calculation: plan price + deposit – discount
+- Payment mode (cash, UPI, card)
+- Transaction ID (if digital)
+- "Collect & Complete" button
+
+**On Confirm**: Generate Smart ID using gap‑filling logic (simulate: find smallest missing number). Update mock data.
+
+### C. Seat Assignment (Modal)
+
+- Triggered from "Assign Seat" button (on unallocated student)
+- Show seat matrix with available seats highlighted
+- Select seat → confirm → updates student's `currentSeat` and seat occupant
+
+### D. Shift Migration (Modal) – Manager only
+
+- In student profile, "Change Shift" button
+- Select new shift
+- Show fee adjustment (pro‑rated difference)
+- Confirm → updates student's shift and seat (if needed)
+
+---
+
+## 💰 3. FEE COLLECTION (`/fees`)
+
+### A. Collect Fee Modal (CRITICAL)
+
+**How to open**:
+- From Dashboard "Dues Pending" card
+- From Student Directory "Collect Fee" action
+- From Fees page search
+
+**Modal content**:
+- Student search (autocomplete) – pre‑filled if coming from context
+- Invoice card:
+  - Base fee (from plan)
+  - Due amount (from student)
+  - **Late Fee toggle**:
+    - If student `lateFeeApplicable` is true, show a switch "Apply Late Fee (₹50)"
+    - Manager can toggle on/off; Staff sees it but cannot override (if late fee is auto‑calculated, maybe Staff cannot disable)
+  - **Coupon input**: optional, apply if valid
+- Payment details:
+  - Amount to pay (auto‑filled with due amount, editable but cannot exceed due)
+  - Payment mode (cash, UPI, card)
+  - Transaction ID (if digital)
+- **PTP Option**: Button "Can't pay now? Record Promise" – opens PTP modal (Service 8) with promised amount and date.
+
+**On Submit**:
+- Reduce student's due amount
+- Add payment to mockPayments
+- Update today's collection
+- Show toast "Receipt sent via WhatsApp" (simulate)
+
+### B. Dues Manager (Table)
+
+**Table Columns**:
+- Student Name, Smart ID, Due Amount, Late Fee Applicable (badge), Last Payment Date, Actions (Collect, Send Reminder)
+
+**Bulk Action**: "Send Reminder" – simulates sending WhatsApp to student's phone (and guardian phone if exists).
+
+---
+
+## 📝 4. ATTENDANCE (`/attendance`)
+
+### A. Mark In/Out Scanner
+
+**Input**: Smart ID (text field or scan simulation)
+
+**On submit**:
+- Fetch student from mock
+- If student found:
+  - Show current status (already checked in? out?)
+  - Toggle: **"Notify Guardian?"** (default ON if `parentPhone` exists)
+  - Button "Mark In" / "Mark Out"
+- **Guardian Logic**: If student is linked as guardian, after marking, show prompt: "Mark attendance for sibling Priya too?" (with checkboxes for dependents). If checked, mark all with same in/out time.
+- **Simulation**: Show toast "Message sent to parent: Amit checked in at 10:00 AM"
+
+### B. Absentee List
 
 **Table**:
-- Columns: Code, Discount (type + value), Valid From, Valid Till, Uses (used/max), Status (Active/Expired), Actions (Edit, Deactivate, Delete).
-- Filter by Status.
-
-**"Add Coupon" Modal** (Service 21.1):
-- Code (text, auto‑generate option with button)
-- Description (textarea, optional)
-- Discount type (radio: percentage / fixed)
-- Discount value (number, required)
-- Valid from (date picker, required)
-- Valid till (date picker, required, must be after from)
-- Max uses (number, optional, must be > 0)
-- Min order amount (number, optional, default 0)
-- Applicable plans (multi‑select, or "All plans" radio)
-- Active (toggle, default true)
-- Zod validation.
-
-### 2.4 User Management (`/settings/users`)
-
-**Table** (TanStack):
-- Columns: Name, Phone, Role (badge: Manager=blue, Staff=gray), Status (Active/Inactive), Last Login, Actions (Edit, Reset Password, Deactivate).
-- Filter by Role, Status.
-
-**"Add User" Modal** (Service 1.1) – Owner can create **Manager** or **Staff**:
-- Name (text, required)
-- Phone (E.164 format, required)
-- Email (email, optional)
-- Password (auto‑generate toggle, or manual with strength meter)
-- Role (select: manager, staff)
-- Permissions (checkboxes based on role – pre-populated, can customize)
-  - For Manager: "Manage Students", "Collect Fees", "View Reports", "Mark Attendance"
-  - For Staff: "Collect Fees", "Mark Attendance", "View Students"
-- Send welcome email (checkbox, default true)
-- Active (toggle, default true)
-- Zod validation.
-
-**"Edit User" Modal** – same fields, password optional.
-
-**"Reset Password" Modal** – auto‑generate or manual, force change on next login checkbox.
+- Students with attendance missing for >3 consecutive days (simulated)
+- Columns: Name, Phone, Parent Phone, Consecutive Absent Days, Actions ("Send Warning" – WhatsApp template)
 
 ---
 
-## 💰 3. FINANCE MODULE
+## 📞 5. CRM & LEADS (`/crm`)
 
-### 3.1 Expenses (`/finance/expenses`)
+### A. Lead Management (Table)
 
-**Table** (TanStack):
-- Columns: Date, Category, Amount, Vendor, Payment Mode, Receipt (link icon), Actions (Edit, Delete).
-- Filter by Category, Date Range.
-- Sorting by Date, Amount.
+**Columns**:
+- Name, Phone, Source (icon), Status (badge), Last Message Sent, Follow‑up Date (highlight if today)
+- Actions: "Log Interaction", "Convert to Student", "Send Message"
 
-**"Add Expense" Modal** (Service 12.2):
-- Category (select: Rent, Utilities, Salaries, Maintenance, Marketing, Other)
-- Amount (number, required)
-- Description (textarea, optional)
-- Expense date (date picker, default today)
-- Vendor name (text, optional)
-- Bill number (text, optional)
-- GST amount (number, auto‑calculated if category has GST, editable)
-- Payment mode (select: cash, bank_transfer, cheque, UPI)
-- Receipt upload (file – simulate by showing file name after upload)
-- Zod validation.
-
-**Budget Tracking Cards** (above table):
-- For each category, show monthly budget (from `mockBranch.monthlyBudget`) and spent amount (sum of expenses this month).
-- Progress bar: green if <80%, yellow if 80‑100%, red if >100%.
-
-### 3.2 Daily Settlements (`/finance/settlements`) – Service 13 (CRITICAL)
-
-**Purpose**: Anti‑theft. Verify if managers deposited correct cash.
-
-**Table** (TanStack):
-- Columns: Date, Settled By, System Calculation (₹), Actual Cash (₹), Variance (₹), Status (Badge: Balanced=green, Flagged=red), Evidence (link), Actions (View Details).
-- Highlight rows where Variance < 0 (cash shortage) with light red background.
-
-**"View Details" Modal** (click on row):
-- Shows settlement details: date, staff, system vs actual.
-- Displays "Bank Deposit Slip" image placeholder (simulate from evidence URL).
-- Manager notes field (editable by Owner? Owner can add note).
-- "Mark as Reviewed" button (updates status to "Reviewed" in mock).
-
-**Flagged Settlement Alert** on dashboard (already implemented).
-
-### 3.3 Reports (`/finance/reports`) – Service 15
-
-**Tabs**:
-
-**Tab 1: P&L Statement** (Service 12.3)
-- Date range selector (default current month).
-- Summary cards:
-  - Total Revenue (from payments)
-  - Total Expenses (from expenses)
-  - Gross Profit
-  - Net Profit (after tax, assume 18% tax)
-  - Profit Margin %
-- Bar chart: monthly comparison of revenue vs expenses.
-
-**Tab 2: Revenue Report**
-- Daily collection line chart (from `mockDailyRevenue`).
-- Payment mode breakdown (pie chart: cash, UPI, card).
-- Staff collection leaderboard (table with staff name, total collected, number of transactions).
-
-**Tab 3: Occupancy Report** (Service 5.4)
-- Average occupancy per shift (cards).
-- Revenue per seat (table: seat number, student name, total revenue generated).
-- Occupancy heatmap (calendar view with colour by % – use mock data).
-
-**Tab 4: Student Report**
-- New admissions vs exits (line chart over months).
-- Retention rate (cohort table).
-- Student distribution by plan (pie chart).
-
-**Export buttons** (simulate PDF/Excel download with toast).
-
----
-
-## 🛠️ 4. ADMIN TOOLS
-
-### 4.1 Assets & Maintenance (`/admin/assets`) – Service 22
-
-**Table** (TanStack):
-- Columns: Asset Name, Category, Model, Purchase Date, Warranty Expiry, Status (badge), Next Maintenance, Actions (Edit, Log Maintenance).
-- Filter by Category, Status.
-
-**"Add Asset" Modal** (Service 22.1):
-- Name (text, required)
-- Category (select: HVAC, Furniture, Electronics, Other)
-- Quantity (number, default 1)
-- Purchase Date (date picker)
-- Purchase Amount (number)
-- Vendor (text, optional)
-- Warranty (months, number)
-- Model (text)
-- Location (text)
-- Photo upload (file – simulate)
-
-**"Maintenance Log" Modal** (click on asset row):
-- Service type (select: preventive, repair)
-- Description (textarea)
-- Cost (number)
-- Vendor (text)
-- Serviced Date (date picker)
-- Next Due Date (date picker)
-- Invoice upload (file – simulate)
-
-**Maintenance Alerts** widget on dashboard (if any assets with nextMaintenance < 7 days).
-
-### 4.2 ID Card Generator (`/admin/id-cards`) – Service 16
-
-**Single Card Generation**:
-- Student search (autocomplete with name, smart ID, photo) using `mockStudents`.
-- Preview card with photo, name, smart ID, QR code (QR code contains student data as string).
-- "Generate PDF" button – triggers toast "ID Card generated" and simulates download.
-
-**Bulk Generation**:
-- Student selector table with checkboxes (paginated).
-- "Generate All" – creates a zip of PDFs (simulate with toast).
-- Template Selector (dropdown: default, premium, custom).
-
-### 4.3 Bulk Import (`/admin/import`) – Service 14
-
-**Interface**:
-- "Download Template" button (CSV/Excel) – simulates download.
-- File upload area (drag & drop) – accepts .xlsx, .csv.
-- Column mapping (if custom file) – show dropdowns to map columns.
-- Preview of first 10 rows with validation status (green/red).
-
-**Import Progress**:
-- Show progress bar (simulated with setInterval for 3 seconds).
-- After completion: success count, failure count, download error report button.
-- "Rollback" button (if import was wrong) – reverts changes in mock data.
-
-### 4.4 Audit Logs (`/admin/audit`) – Service 25 (CRITICAL)
-
-**Purpose**: Fraud detection.
-
-**Filters**:
-- Severity (Critical, High, Medium, Low) – multi‑select.
-- User (select from mockUsers)
-- Date range (date pickers)
-
-**Table** (TanStack virtualized for large datasets):
-- Columns: Timestamp, User (avatar + name), Action (bold), Entity, Details (truncated), Severity (badge), IP Address.
-- Red background for rows with action "DELETE" or severity "Critical".
-
-**Click row** → opens **Audit Diff Modal**:
-- Shows old vs new values in a diff viewer (side‑by‑side).
-- For deleted entities, shows a red "Deleted" badge.
-
-**Real‑time simulation**: Every 30 seconds, a new audit log appears (push via simulated socket). Update table automatically.
-
----
-
-## 👥 5. MEMBERS MODULE
-
-### 5.1 Student Directory (`/members/directory`) – Service 4
-
-**Table** (TanStack with advanced filtering):
-- Columns: Smart ID, Name, Phone, Current Seat, Shift, Plan (from subscription), Due Amount (red if >0), Expiry Date (highlight if <7 days), Trust Score (⭐ rating, 0‑5), Status (badge).
-- Filters: Status, Shift, Plan, Due Payment (yes/no).
-- Global search across name, phone, smart ID.
-
-**Row actions**:
-- "View Profile" – opens student profile page (see below).
-- "Collect Fee" – opens fee collection modal (but Owner may not collect, so maybe just view due).
-- "Send Message" – opens WhatsApp modal (simulated).
-
-**Student Profile Page** (`/members/students/[id]`):
-
-**Tabs**:
-
-**Tab 1: Overview**
-- Personal info card (photo, name, phone, parent phone, email, college)
-- Documents (Aadhar, ID proof) – view/download links (simulate)
-- Current seat & shift (read‑only)
-- Trust score (⭐ rating)
-- Family tree visualization (if family exists, show nodes with relationship lines, guardian icon)
-
-**Tab 2: Subscription**
-- Current plan details (name, price, start, end)
-- Payment history table (date, amount, mode, received by)
-- Upcoming renewals (if any)
-
-**Tab 3: Attendance**
-- Calendar view (month grid) with present/absent dots (mock data)
-- Monthly attendance % (card)
-- Absence pattern analysis (e.g., "Mostly absent on Mondays")
-
-**Tab 4: Activity**
-- Login history (if app access) – mock data
-- Complaint history (table of complaints filed by this student)
-- Referral tracking (if referred others)
-
-**Actions**:
-- Suspend/Reactivate (toggle)
-- Exit (with refund calculation modal)
-
-### 5.2 Family Management (`/members/families`)
-
-**Family Groups Table**:
-- Primary member, Phone, Members count, Guardian name
-
-**Click row** → expand **Family Tree** visual:
-- Interactive tree with nodes (student names)
-- Relationship lines labelled (brother, sister, etc.)
-- Guardian icon (👑) on primary
-- Click node → quick popup with student details (name, phone, due amount)
-
-**"Add to Family" button**:
-- Search existing student (autocomplete)
-- Select relationship (brother, sister, cousin, other)
-- Set as guardian toggle
-- Save → updates mock data and re-renders tree
-
-### 5.3 Waitlist (`/members/waitlist`) – Service 17
-
-**Top Card**: "Potential Revenue: ₹5,000" (sum of `mockWaitlist` potentialRevenue).
-
-**Table**:
-- Columns: Priority (drag handle), Name, Phone, Preferred Shift, Joined Date (days waiting), Status (Waiting, Notified, Converted), Actions (Notify, Remove).
-- Drag rows to reorder priority (simulate priority change).
-
-**"Add to Waitlist" Modal**:
-- Student search (or "New Person" option)
-- Preferred shift (select)
-- Preferred slots (if custom, show time pickers)
-- Max wait days (number, default 30)
-- Notification preference (whatsapp, sms, email, all)
+**"Log Interaction" Modal**:
+- Interaction type (call, visit, WhatsApp)
 - Notes
+- Next follow‑up date (optional)
+- Status update (new → visited → interested → converted/lost)
 
-**Auto‑notify simulation**: When a seat becomes available (simulate with button "Free Seat"), show toast "Notifying top 3 waitlist entries".
+**"Send Message" Modal**:
+- Template dropdown (Welcome Offer, Seat Availability Alert)
+- Preview message
+- Send button → updates `lastMessageSent` and logs interaction
 
-### 5.4 Blacklist (`/members/blacklist`) – Service 18
-
-**Table**:
-- Columns: Phone, Name, Reason, Severity (badge: high=red, medium=orange, low=yellow), Added By, Date, Actions (Remove).
-- Filter by Severity.
-
-**"Add to Blacklist" Modal** (Service 18.1):
-- Phone (required, E.164)
-- Name (required)
-- Reason (textarea, required)
-- Severity (select: high, medium, low)
-- Evidence URLs (file upload, optional)
-- "Share with other branches" (disabled since Owner has one branch)
-
-**Remove** – confirmation dialog, then remove from mock data.
-
-### 5.5 Alumni (`/members/alumni`) – Service 4.6
-
-**Table**:
-- Columns: Name, Smart ID, Exit Date, Reason, Forward Address (optional), Actions (Re‑admit).
-- Filter by Exit Date.
-
-**"Re‑admit"** – opens admission wizard (Service 4.1) pre‑filled with student data (name, phone, etc.) but with new seat selection (read‑only for Owner? Actually Owner can view but not assign seats, so maybe just view and then Manager does admission).
+### B. Conversion to Student
+- Click "Convert" – opens Admission Wizard pre‑filled with lead's name, phone
 
 ---
 
-## 📢 6. COMMUNICATION MODULE
+## 🛠️ 6. DAILY OPS (`/ops`)
 
-### 6.1 Notices (`/communication/notices`) – Service 11
+### A. Lockers (Service 19)
 
-**Table**:
-- Columns: Title, Priority (badge: emergency=red, important=orange, general=blue), Sent Date, Target, Delivery Rate (%), Actions (View Report, Delete).
+- **Locker Grid**: Visual matrix (clickable cells)
+  - Green: available
+  - Red: occupied (shows occupant name on hover)
+  - Orange: maintenance
+- **Click Green Locker**: Opens "Assign Locker" modal:
+  - Student search
+  - Monthly fee (from settings, editable)
+  - Confirm → updates locker occupant, adds fee to student's dues
 
-**"Create Notice" Modal** (Service 11.1):
-- Title (text, required)
-- Message (textarea, required, markdown support)
-- Priority (select: general, important, emergency)
-- Target audience (select: all students, morning shift, evening shift, custom)
-- Channels (checkboxes: WhatsApp, SMS, Email, In‑app) – at least one.
-- Schedule (toggle: immediate or date‑time picker)
-- Attachments (file upload, optional)
-
-**Delivery Report** (click on notice):
-- Modal with total sent, failed, read receipts (mock data).
-- List of failed deliveries with reason.
-
-### 6.2 Complaints (`/communication/complaints`) – Service 10
+### B. Complaints (Service 10)
 
 **Tabs**: Open / Resolved
 
 **Open Complaints Table**:
-- Columns: Complaint Number, Title, Category (badge), Priority (badge), Student (or "Anonymous"), Created Date, Days Open, Actions (Assign, Mark In Progress, Resolve).
+- Columns: Number, Title, Category, Priority (badge), Student (or "Anonymous"), Created Date, Days Open, Actions
+- **Actions**:
+  - Staff: "Escalate" (changes priority or flags for manager)
+  - Manager: "Assign to me", "Mark In Progress", "Resolve"
+- **Resolve Modal**: Resolution notes, "Notify Complainant" checkbox
 
-**"Resolve" Modal**:
-- Resolution notes (textarea)
-- Status (resolved, closed)
-- Notify complainant (checkbox, default true)
+### C. Expenses (Service 12) – Staff can add, Manager can approve/edit
 
-**Resolved Complaints Table**:
-- Same columns + Resolved Date, Resolution Notes.
+**Table**:
+- Date, Category, Amount, Vendor, Payment Mode, Receipt (link), Actions (Edit, Delete)
 
-**Add Complaint** button (for Owner to add on behalf of student) – modal with title, description, category, priority, student (optional), anonymous toggle.
+**"Add Expense" Modal**:
+- Category (select)
+- Amount
+- Description
+- Expense date
+- Vendor (optional)
+- Bill number (optional)
+- GST amount (optional)
+- Payment mode
+- Receipt upload (file)
+
+### D. Assets (Service 22) – View only for Staff; Manager can add maintenance
+
+**Table**:
+- Asset Name, Category, Status, Next Maintenance, Actions ("Request Maintenance" for Staff, "Log Maintenance" for Manager)
+
+**"Maintenance Log" Modal (Manager)**:
+- Description, Cost, Vendor, Serviced Date, Next Due Date, Invoice upload
+
+### E. EOD Settlement (Service 13) – Manager Only
+
+**View**:
+- Today's cash collections (from payments mode='cash')
+- Cash expenses (from expenses mode='cash')
+- Expected cash in hand
+- Input field: Actual cash in hand
+- Variance (actual - expected)
+- Notes field
+- "Submit Settlement" button
+
+**On Submit**: Add to mock settlements, if variance ≠ 0, flag as "Flagged" and show toast.
 
 ---
 
-## 🔄 7. REAL‑TIME SIMULATION
+## 🔐 ROLE-BASED ACCESS CONTROL (RBAC)
 
-- Use `setInterval` in a React context to simulate socket events.
-- Every 30 seconds, push a new notification (e.g., "New complaint filed", "Settlement flagged").
-- Update notification badge in topbar.
-- For audit logs, add a new entry every minute (simulate).
-- For waitlist, randomly free a seat and show toast "Seat available! Notifying waitlist".
+- **Staff**:
+  - Can collect fees, but cannot override late fee toggle (if late fee auto‑applies, they can't disable)
+  - Can mark attendance, add leads, log interactions, add expenses, view lockers, escalate complaints
+  - Cannot perform EOD settlement, cannot delete expenses, cannot handle refunds, cannot override late fees
+- **Manager**:
+  - Can do everything Staff can
+  - Plus: toggle late fee on/off, apply refunds (from student exit), perform EOD settlement, delete expenses, resolve complaints, add maintenance logs
+
+Implement a **role toggle in topbar** (for demo) to switch between Manager and Staff views, disabling/enabling actions accordingly.
 
 ---
 
-## 🧨 INTERACTION & BEHAVIOR RULES
+## 🧨 INTERACTIVITY & VALIDATION RULES
 
-1. **Buttons must work**: Every "Add", "Edit", "Delete", "Save" button must open a Shadcn Dialog or trigger a Sonner toast.
-2. **Optimistic UI**: When adding/editing/deleting in mock data, the UI should update immediately (update local state).
-3. **Validation**: All forms must use React Hook Form + Zod with error messages displayed inline.
-4. **Responsive**: Sidebar collapses into a Sheet component on mobile. Tables scroll horizontally.
-5. **Empty States**: If a table has no data, show a "No records found" illustration.
-6. **Loading States**: Show skeleton loaders for initial data fetch (even with mock data, simulate a 300ms delay).
+1. **Blacklist Check**: On admission phone blur, if phone in `mockBlacklist`, show error and block form submission.
+2. **Seat Maintenance Warning**: If assigning a seat marked "maintenance", show warning before proceeding.
+3. **PTP Date Validation**: Promised date must be future.
+4. **Fee Collection**:
+   - Amount cannot exceed due amount.
+   - If payment mode is digital, transaction ID required.
+5. **Attendance**:
+   - Cannot mark future dates.
+   - If marking in and student already marked in, ask to mark out.
+6. **Guardian Attendance**: When guardian is marked, show prompt to mark dependents.
+7. **Optimistic UI**: All updates (fee collection, seat assignment) should immediately reflect in lists (remove from pending, update counts).
+8. **Toast Notifications**: For every action (success, error, warning).
 
 ---
 
 ## ✅ EXPECTED DELIVERABLES
 
 The AI should generate a complete Next.js project with:
-- All pages listed above, with proper routing.
-- All components (tables, modals, charts) in the `components` folder.
-- Mock data in `lib/mockData.ts` as specified.
-- Global layout with sidebar and topbar.
-- Fully interactive UI (forms submit, tables filter, charts render, toasts appear).
-- Simulated real‑time updates.
-- No backend required – everything works with hardcoded data.
+- All pages: Dashboard, Students, Fees, Attendance, CRM, Ops.
+- All components (modals, tables, charts) in `components` folder.
+- Mock data in `lib/opsData.ts` as specified.
+- Global layout with role toggle.
+- Fully interactive UI with validation and real‑time updates (simulated).
+- RBAC implemented – certain buttons disabled for Staff.
 
-**Copy this prompt into Bolt.new or any AI UI builder and it will generate the entire Owner dashboard, ready for live testing.**
+**Copy this prompt into Bolt.new or any AI UI builder and it will generate the entire Operations Console, ready for live testing.**
