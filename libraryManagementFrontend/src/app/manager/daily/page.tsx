@@ -15,12 +15,16 @@ import { Plus, Lock, AlertCircle, DollarSign, Package, Calculator } from 'lucide
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { AssignLockerModal } from '@/components/modals/assign-locker-modal';
+import { ResolveComplaintModal } from '@/components/modals/resolve-complaint-modal';
 
 export default function DailyOpsPage() {
   const { isManager } = useRoleStore();
   const [activeTab, setActiveTab] = useState('lockers');
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showEOD, setShowEOD] = useState(false);
+  const [selectedLocker, setSelectedLocker] = useState<string | null>(null);
+  const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
 
   // EOD State
   const [actualCash, setActualCash] = useState('');
@@ -84,7 +88,7 @@ export default function DailyOpsPage() {
                         locker.status === 'available' ? 'bg-green-50 border-green-300' :
                         'bg-orange-50 border-orange-300'
                       }`}
-                      onClick={() => locker.status === 'available' && toast.success('Assign locker modal would open')}
+                      onClick={() => locker.status === 'available' && setSelectedLocker(locker.number)}
                     >
                       <Lock className="h-5 w-5 mb-1" />
                       <span className="text-xs font-medium">{locker.number}</span>
@@ -163,11 +167,10 @@ export default function DailyOpsPage() {
                             <TableCell>
                               <div className="flex gap-1">
                                 {!isManager() ? (
-                                  <Button size="sm" variant="outline">Escalate</Button>
+                                  <Button size="sm" variant="outline" onClick={() => setSelectedComplaint(complaint)}>Escalate</Button>
                                 ) : (
                                   <>
-                                    <Button size="sm" variant="outline">In Progress</Button>
-                                    <Button size="sm">Resolve</Button>
+                                    <Button size="sm" variant="outline" onClick={() => setSelectedComplaint(complaint)}>Manage</Button>
                                   </>
                                 )}
                               </div>
@@ -365,6 +368,22 @@ export default function DailyOpsPage() {
           )}
         </Tabs>
       </div>
+
+      {/* Modals */}
+      {selectedLocker && (
+        <AssignLockerModal
+          lockerNumber={selectedLocker}
+          open={!!selectedLocker}
+          onClose={() => setSelectedLocker(null)}
+        />
+      )}
+      {selectedComplaint && (
+        <ResolveComplaintModal
+          complaint={selectedComplaint}
+          open={!!selectedComplaint}
+          onClose={() => setSelectedComplaint(null)}
+        />
+      )}
     </ManagerLayout>
   );
 }

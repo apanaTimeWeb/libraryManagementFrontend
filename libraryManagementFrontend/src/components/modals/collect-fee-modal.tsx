@@ -9,10 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { Student } from '@/lib/types/ops-types';
 import { useRoleStore } from '@/lib/stores/role-store';
 import { toast } from 'sonner';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { PTPModal } from './ptp-modal';
+import { mockCoupons } from '@/lib/opsData';
 
 interface CollectFeeModalProps {
   student: Student | null;
@@ -27,15 +25,37 @@ export function CollectFeeModal({ student, open, onClose }: CollectFeeModalProps
   const [paymentMode, setPaymentMode] = useState('cash');
   const [transactionId, setTransactionId] = useState('');
   const [showPTP, setShowPTP] = useState(false);
-  const [ptpDate, setPtpDate] = useState<Date>();
-  const [ptpAmount, setPtpAmount] = useState(student?.dueAmount || 0);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponDiscount, setCouponDiscount] = useState(0);
 
   if (!student) return null;
 
   const lateFee = 50;
-  const totalAmount = amount + (applyLateFee ? lateFee : 0);
+  const totalAmount = amount + (applyLateFee ? lateFee : 0) - couponDiscount;
+
+  const validateCoupon = () => {
+    const coupon = mockCoupons.find(c => c.code === couponCode && c.isActive);
+    if (coupon) {
+      const discount = coupon.discountType === 'fixed' 
+        ? coupon.discountValue 
+        : amount * (coupon.discountValue / 100);
+      setCouponDiscount(discount);
+      toast.success(`Coupon applied! ₹${discount} discount`);
+    } else {
+      toast.error('Invalid or expired coupon');
+      setCouponDiscount(0);
+    }
+  };
 
   const handleCollect = () => {
+    if (amount <= 0) {
+      toast.error('Amount must be greater than 0');
+      return;
+    }
+    if (amount > student.dueAmount) {
+      toast.error('Amount cannot exceed due amount');
+      return;
+    }
     if (paymentMode !== 'cash' && !transactionId) {
       toast.error('Transaction ID required for digital payments');
       return;
@@ -54,47 +74,7 @@ export function CollectFeeModal({ student, open, onClose }: CollectFeeModalProps
   };
 
   if (showPTP) {
-    return (
-      <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Record Promise to Pay</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Student</Label>
-              <p className="font-medium">{student.name}</p>
-            </div>
-            <div>
-              <Label>Amount</Label>
-              <Input
-                type="number"
-                value={ptpAmount}
-                onChange={(e) => setPtpAmount(Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label>Promise Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {ptpDate ? format(ptpDate, 'PPP') : 'Pick a date'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={ptpDate} onSelect={setPtpDate} />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowPTP(false)}>Back</Button>
-              <Button onClick={handlePTP} className="flex-1">Record PTP</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
+    return <PTPModal student={student} open={open} onClose={() => { setShowPTP(false); onClose(); }} />;
   }
 
   return (
@@ -133,6 +113,22 @@ export function CollectFeeModal({ student, open, onClose }: CollectFeeModalProps
                 />
               </div>
             )}
+
+            {/* Coupon Input */}
+            <div>
+              <Label>Coupon Code (Optional)</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  placeholder="Enter coupon code"
+                />
+                <Button onClick={validateCoupon} variant="outline">Apply</Button>
+              </div>
+              {couponDiscount > 0 && (
+                <p className="text-sm text-green-600 mt-1">Discount applied: ₹{couponDiscount}</p>
+              )}
+            </div>
 
             <div className="flex justify-between font-bold text-lg pt-2 border-t">
               <span>Total:</span>

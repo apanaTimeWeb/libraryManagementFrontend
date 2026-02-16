@@ -12,6 +12,7 @@ import { LeadsTable } from '@/components/tables/leads-table';
 import { LogInteractionModal } from '@/components/modals/log-interaction-modal';
 import { SendMessageModal } from '@/components/modals/send-message-modal';
 import { AdmissionWizard } from '@/components/modals/admission-wizard';
+import { AddLeadModal } from '@/components/modals/add-lead-modal';
 
 export default function CRMPage() {
   const [leads, setLeads] = useState(mockEnquiries);
@@ -19,6 +20,7 @@ export default function CRMPage() {
   const [showLogInteraction, setShowLogInteraction] = useState(false);
   const [showSendMessage, setShowSendMessage] = useState(false);
   const [showConvert, setShowConvert] = useState(false);
+  const [showAddLead, setShowAddLead] = useState(false);
 
   const newLeads = leads.filter(l => l.status === 'new').length;
   const interestedLeads = leads.filter(l => l.status === 'interested').length;
@@ -48,7 +50,7 @@ export default function CRMPage() {
             <h1 className="text-2xl font-bold text-slate-900">CRM & Leads</h1>
             <p className="text-sm text-slate-500">Manage enquiries and convert leads</p>
           </div>
-          <Button>
+          <Button onClick={() => setShowAddLead(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Lead
           </Button>
@@ -139,6 +141,12 @@ export default function CRMPage() {
             setShowConvert(false);
             setSelectedLead(null);
           }}
+        />
+      )}
+      {showAddLead && (
+        <AddLeadModal
+          open={showAddLead}
+          onClose={() => setShowAddLead(false)}
         />
       )}
     </ManagerLayout>

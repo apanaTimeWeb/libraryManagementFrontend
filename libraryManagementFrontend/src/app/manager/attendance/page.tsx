@@ -12,11 +12,14 @@ import { mockStudents, mockAttendance } from '@/lib/opsData';
 import { Camera, AlertTriangle, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { GuardianAttendanceModal } from '@/components/modals/guardian-attendance-modal';
 
 export default function AttendancePage() {
   const [smartId, setSmartId] = useState('');
   const [notifyGuardian, setNotifyGuardian] = useState(true);
   const [scannedStudent, setScannedStudent] = useState<any>(null);
+  const [showGuardianModal, setShowGuardianModal] = useState(false);
+  const [attendanceAction, setAttendanceAction] = useState<'in' | 'out'>('in');
 
   const absentees = mockStudents.filter(s => s.status === 'active').slice(0, 5);
   const presentToday = mockAttendance.length;
@@ -32,24 +35,38 @@ export default function AttendancePage() {
 
   const handleMarkIn = () => {
     if (!scannedStudent) return;
-    toast.success(
-      `${scannedStudent.name} marked IN at ${new Date().toLocaleTimeString()}${
-        notifyGuardian && scannedStudent.parentPhone ? '. Message sent to parent.' : ''
-      }`
-    );
-    setScannedStudent(null);
-    setSmartId('');
+    
+    // Check if student is a guardian
+    if (scannedStudent.guardianPhone === scannedStudent.phone || scannedStudent.familyLinked) {
+      setAttendanceAction('in');
+      setShowGuardianModal(true);
+    } else {
+      toast.success(
+        `${scannedStudent.name} marked IN at ${new Date().toLocaleTimeString()}${
+          notifyGuardian && scannedStudent.parentPhone ? '. Message sent to parent.' : ''
+        }`
+      );
+      setScannedStudent(null);
+      setSmartId('');
+    }
   };
 
   const handleMarkOut = () => {
     if (!scannedStudent) return;
-    toast.success(
-      `${scannedStudent.name} marked OUT at ${new Date().toLocaleTimeString()}${
-        notifyGuardian && scannedStudent.parentPhone ? '. Message sent to parent.' : ''
-      }`
-    );
-    setScannedStudent(null);
-    setSmartId('');
+    
+    // Check if student is a guardian
+    if (scannedStudent.guardianPhone === scannedStudent.phone || scannedStudent.familyLinked) {
+      setAttendanceAction('out');
+      setShowGuardianModal(true);
+    } else {
+      toast.success(
+        `${scannedStudent.name} marked OUT at ${new Date().toLocaleTimeString()}${
+          notifyGuardian && scannedStudent.parentPhone ? '. Message sent to parent.' : ''
+        }`
+      );
+      setScannedStudent(null);
+      setSmartId('');
+    }
   };
 
   const handleSendWarning = (student: any) => {
@@ -215,6 +232,21 @@ export default function AttendancePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Guardian Attendance Modal */}
+      {showGuardianModal && scannedStudent && (
+        <GuardianAttendanceModal
+          guardianStudent={scannedStudent}
+          action={attendanceAction}
+          time={new Date().toLocaleTimeString()}
+          open={showGuardianModal}
+          onClose={() => {
+            setShowGuardianModal(false);
+            setScannedStudent(null);
+            setSmartId('');
+          }}
+        />
+      )}
     </ManagerLayout>
   );
 }
