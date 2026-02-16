@@ -143,6 +143,14 @@ const STAFF_NAV: NavGroup[] = [
         ]
     },
     {
+        group: "Resources",
+        icon: LayoutGrid,
+        items: [
+            { label: "Seats", href: "/manager/seats" },
+            { label: "Lockers", href: "/manager/daily?tab=lockers" }
+        ]
+    },
+    {
         group: "Finance",
         icon: CreditCard,
         items: [

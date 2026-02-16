@@ -36,6 +36,7 @@ const navigation = [
   { name: 'Fees', href: '/manager/fees', icon: DollarSign },
   { name: 'Attendance', href: '/manager/attendance', icon: ClipboardCheck },
   { name: 'CRM', href: '/manager/crm', icon: MessageSquare },
+  { name: 'Seats', href: '/manager/seats', icon: Settings },
   { name: 'Daily Ops', href: '/manager/daily', icon: Settings },
 ];
 
